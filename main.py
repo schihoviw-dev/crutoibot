@@ -12,7 +12,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
 
 # ===== КОНФИГ =====
-BOT_TOKEN = "ВАШ_ТОКЕН_СЮДА"
+BOT_TOKEN = "8871224360:AAEjVO4h1c_3nzM4u2BWBdVhmmpfiiUayjc"
 ADMIN_FILE = "admins.txt"
 GIF_FOLDER = "gifs"
 
