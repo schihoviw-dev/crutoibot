@@ -18,7 +18,7 @@ from aiohttp import ClientError, ServerDisconnectedError
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = "8722877797:AAEzFSsydqP9dM-ZAxx9J2BI69womfxtYLk"
+TOKEN = "8777636883:AAHVOgPubVWJTn52rEjJZDP9_B03EKwYORw"
 SUPPORT_USERNAME = "MalonGarant"
 ADMINS_FILE = "admins.txt"
 DEALS_FILE = "deals.json"
