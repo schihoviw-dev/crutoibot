@@ -51,7 +51,6 @@ def init_db():
     conn.close()
 
 def generate_deal_code():
-    """Генерирует код сделки вида b505ee58 (БЕЗ #)"""
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
 
 def add_user(user_id, username, full_name):
