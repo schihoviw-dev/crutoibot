@@ -13,7 +13,13 @@ SUPPORT_USERNAME = "@MalonGarant"
 COMMISSION = 3.0
 WELCOME_GIF_PATH = "gifs/welcome.gif.mp4"
 
-# ПРЕМИУМ ЭМОДЗИ
+# ========== ПРЕМИУМ ЭМОДЗИ ==========
+E_BANK = '<tg-emoji emoji-id="5224607267797606837">🏦</tg-emoji>'
+
+E_RU = '<tg-emoji emoji-id="5291734595862018096">🇷🇺</tg-emoji>'
+E_US = '<tg-emoji emoji-id="5294447773947543583">🇺🇸</tg-emoji>'
+E_TR = '<tg-emoji emoji-id="5292218402453075461">🇹🇷</tg-emoji>'
+
 E_DEAL = '<tg-emoji emoji-id="5980871942570251958">💎</tg-emoji>'
 E_GRAM = '<tg-emoji emoji-id="5980783470538921933">🪙</tg-emoji>'
 E_STARS = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'
@@ -33,11 +39,9 @@ E_WITHDRAW = '<tg-emoji emoji-id="5310191758255099001">💰</tg-emoji>'
 E_CARD = '<tg-emoji emoji-id="5445353829304387411">💳</tg-emoji>'
 E_GLOBE = '<tg-emoji emoji-id="5332724926216428039">🌐</tg-emoji>'
 E_CHAT = '<tg-emoji emoji-id="5447410659077661506">💬</tg-emoji>'
-E_BANK = '<tg-emoji emoji-id="5443038326535759644">🏦</tg-emoji>'
 E_SUCCESS = '<tg-emoji emoji-id="5373174941095050893">✅</tg-emoji>'
 E_GROUP = '<tg-emoji emoji-id="5237699328843200968">👥</tg-emoji>'
 
-# ========== ERROR MESSAGES (ОБЯЗАТЕЛЬНО) ==========
 ERROR_MESSAGES = {
     "no_requisites": f"{E_WARNING} У вас ещё не добавлен реквизит GRAM!\n\nДобавьте его здесь: Главное меню → Реквизиты → Добавить GRAM",
     "invalid_gram": f"{E_WARNING} Вы указали неверный адрес кошелька GRAM!\n\n❗ Формат: откройте кошелёк -> скопируйте точный адрес -> вставьте скопированный текст",
