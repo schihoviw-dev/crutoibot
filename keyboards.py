@@ -49,9 +49,9 @@ def admin_panel():
 
 def currency_selection():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Грам", callback_data="currency_gram", icon_custom_emoji_id=ICON_GRAM)],
+        [InlineKeyboardButton(text="GRAM", callback_data="currency_gram", icon_custom_emoji_id=ICON_GRAM)],
+        [InlineKeyboardButton(text="Карта", callback_data="currency_card", icon_custom_emoji_id=ICON_CARD)],
         [InlineKeyboardButton(text="Звёзды", callback_data="currency_stars", icon_custom_emoji_id=ICON_STARS)],
-        [InlineKeyboardButton(text="Рубли", callback_data="currency_rub", icon_custom_emoji_id=ICON_RUB)],
         [InlineKeyboardButton(text="Назад", callback_data="back_to_main", icon_custom_emoji_id=ICON_BACK)]
     ])
 
@@ -96,4 +96,9 @@ def share_deal(deal_code, deal_link):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Поделиться ссылкой", callback_data=f"share_send_{deal_code}", icon_custom_emoji_id=ICON_SHARE)],
         [InlineKeyboardButton(text="Отмена", callback_data=f"cancel_deal_{deal_code}", icon_custom_emoji_id=ICON_CROSS)]
+    ])
+
+def support_button():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", icon_custom_emoji_id=ICON_CHAT)]
     ])
