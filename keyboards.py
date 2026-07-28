@@ -21,6 +21,7 @@ ICON_CROSS = "5210952531676504517"
 ICON_SHARE = "5311998535032409760"
 ICON_HAMMER = "5935968647901089910"
 ICON_CHECK = "5206607081334906820"
+ICON_RUB = "5310191758255099001"  # рубли
 
 def main_menu(is_admin=False):
     kb = [
@@ -82,14 +83,16 @@ def admin_panel():
 
 def currency_selection():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="GRAM", callback_data="currency_gram", icon_custom_emoji_id=ICON_GRAM)],
+        [InlineKeyboardButton(text="Грам", callback_data="currency_gram", icon_custom_emoji_id=ICON_GRAM)],
         [InlineKeyboardButton(text="Звёзды", callback_data="currency_stars", icon_custom_emoji_id=ICON_STARS)],
+        [InlineKeyboardButton(text="Рубли", callback_data="currency_rub", icon_custom_emoji_id=ICON_RUB)],
         [InlineKeyboardButton(text="Назад", callback_data="back_to_main", icon_custom_emoji_id=ICON_BACK)]
     ])
 
 def requisite_menu():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Добавить GRAM", callback_data="add_gram", icon_custom_emoji_id=ICON_GRAM)],
+        [InlineKeyboardButton(text="Добавить кошелёк", callback_data="add_gram", icon_custom_emoji_id=ICON_GRAM)],
+        [InlineKeyboardButton(text="Добавить карту", callback_data="add_card", icon_custom_emoji_id=ICON_CARD)],
         [InlineKeyboardButton(text="Удалить все", callback_data="delete_requisites", icon_custom_emoji_id=ICON_CROSS)],
         [InlineKeyboardButton(text="Назад", callback_data="back_to_main", icon_custom_emoji_id=ICON_BACK)]
     ])
