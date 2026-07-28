@@ -1046,4 +1046,4 @@ async def catch_all_callbacks(callback: CallbackQuery):
 async def handle_unknown(message: Message):
     await message.answer(
         f"{E_CROSS} <b>Неизвестная команда.</b>\nИспользуйте /start для начала работы."
-    )
+    ) 
