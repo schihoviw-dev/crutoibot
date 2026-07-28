@@ -1,4 +1,3 @@
-# config.py
 import os
 from dotenv import load_dotenv
 
@@ -13,12 +12,12 @@ SUPPORT_USERNAME = "@MalonGarant"
 COMMISSION = 3.0
 WELCOME_GIF_PATH = "gifs/welcome.gif.mp4"
 
-# ========== ПРЕМИУМ ЭМОДЗИ ==========
+# ПРЕМИУМ ЭМОДЗИ
 E_BANK = '<tg-emoji emoji-id="5224607267797606837">🏦</tg-emoji>'
 E_DEAL = '<tg-emoji emoji-id="5980871942570251958">💎</tg-emoji>'
 E_GRAM = '<tg-emoji emoji-id="5980783470538921933">🪙</tg-emoji>'
 E_STARS = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'
-E_RUB = '💰'  # рубли обычные
+E_RUB = '💰'
 E_HAMMER = '<tg-emoji emoji-id="5935968647901089910">🔨</tg-emoji>'
 E_CHECK = '<tg-emoji emoji-id="5206607081334906820">✅</tg-emoji>'
 E_CROSS = '<tg-emoji emoji-id="5210952531676504517">❌</tg-emoji>'
@@ -44,14 +43,14 @@ E_US = '<tg-emoji emoji-id="5294447773947543583">🇺🇸</tg-emoji>'
 E_TR = '<tg-emoji emoji-id="5292218402453075461">🇹🇷</tg-emoji>'
 
 ERROR_MESSAGES = {
-    "no_requisites": f"{E_WARNING} У вас ещё не добавлен реквизит!\n\nДобавьте его здесь: Главное меню → Реквизиты → Добавить",
-    "invalid_gram": f"{E_WARNING} Вы указали неверный адрес кошелька!\n\n❗ Формат: откройте кошелёк -> скопируйте точный адрес -> вставьте скопированный текст",
-    "deal_not_found": f"{E_CROSS} Сделка не найдена.",
-    "deal_already_paid": f"{E_CROSS} Эта сделка уже оплачена или завершена.",
-    "deal_not_joined": f"{E_CROSS} Мамонт ещё не присоединился к сделке.",
-    "access_denied": f"{E_CROSS} Доступ запрещён.",
-    "invalid_amount": f"{E_CROSS} Введите корректное число",
-    "description_too_long": f"{E_CROSS} Описание слишком длинное (макс 200 символов)"
+    "no_requisites": f"{E_WARNING} <b>У вас ещё не добавлен реквизит!</b>\n\nДобавьте его здесь: Главное меню → Реквизиты → Добавить",
+    "invalid_gram": f"{E_WARNING} <b>Вы указали неверный адрес кошелька!</b>\n\n❗ Формат: откройте кошелёк -> скопируйте точный адрес -> вставьте скопированный текст",
+    "deal_not_found": f"{E_CROSS} <b>Сделка не найдена.</b>",
+    "deal_already_paid": f"{E_CROSS} <b>Эта сделка уже оплачена или завершена.</b>",
+    "deal_not_joined": f"{E_CROSS} <b>Мамонт ещё не присоединился к сделке.</b>",
+    "access_denied": f"{E_CROSS} <b>Доступ запрещён.</b>",
+    "invalid_amount": f"{E_CROSS} <b>Введите корректное число</b>",
+    "description_too_long": f"{E_CROSS} <b>Описание слишком длинное (макс 200 символов)</b>"
 }
 
 CURRENCIES = {
