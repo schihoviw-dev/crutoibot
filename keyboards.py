@@ -1,8 +1,6 @@
-# keyboards.py
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import SUPPORT_USERNAME
 
-# ID премиум-эмодзи для кнопок
 ICON_DEAL = "5980871942570251958"
 ICON_PROFILE = "5258011929993026890"
 ICON_WITHDRAW = "5310191758255099001"
@@ -21,56 +19,24 @@ ICON_CROSS = "5210952531676504517"
 ICON_SHARE = "5311998535032409760"
 ICON_HAMMER = "5935968647901089910"
 ICON_CHECK = "5206607081334906820"
-ICON_RUB = "5310191758255099001"  # рубли
+ICON_RUB = "5310191758255099001"
 
 def main_menu(is_admin=False):
     kb = [
-        [InlineKeyboardButton(
-            text="Создать сделку",
-            callback_data="create_deal",
-            icon_custom_emoji_id=ICON_DEAL
-        )],
-        [InlineKeyboardButton(
-            text="Профиль",
-            callback_data="profile",
-            icon_custom_emoji_id=ICON_PROFILE
-        )],
+        [InlineKeyboardButton(text="Создать сделку", callback_data="create_deal", icon_custom_emoji_id=ICON_DEAL)],
+        [InlineKeyboardButton(text="Профиль", callback_data="profile", icon_custom_emoji_id=ICON_PROFILE)],
         [
-            InlineKeyboardButton(
-                text="Вывод",
-                callback_data="withdraw",
-                icon_custom_emoji_id=ICON_WITHDRAW
-            ),
-            InlineKeyboardButton(
-                text="Реквизиты",
-                callback_data="requisites",
-                icon_custom_emoji_id=ICON_CARD
-            )
+            InlineKeyboardButton(text="Вывод", callback_data="withdraw", icon_custom_emoji_id=ICON_WITHDRAW),
+            InlineKeyboardButton(text="Реквизиты", callback_data="requisites", icon_custom_emoji_id=ICON_CARD)
         ],
         [
-            InlineKeyboardButton(
-                text="Рефералы",
-                callback_data="referrals",
-                icon_custom_emoji_id=ICON_GROUP
-            ),
-            InlineKeyboardButton(
-                text="Язык",
-                callback_data="language",
-                icon_custom_emoji_id=ICON_GLOBE
-            )
+            InlineKeyboardButton(text="Рефералы", callback_data="referrals", icon_custom_emoji_id=ICON_GROUP),
+            InlineKeyboardButton(text="Язык", callback_data="language", icon_custom_emoji_id=ICON_GLOBE)
         ],
-        [InlineKeyboardButton(
-            text="Поддержка",
-            url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}",
-            icon_custom_emoji_id=ICON_CHAT
-        )],
+        [InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", icon_custom_emoji_id=ICON_CHAT)],
     ]
     if is_admin:
-        kb.insert(0, [InlineKeyboardButton(
-            text="Админ-панель",
-            callback_data="admin_panel",
-            icon_custom_emoji_id=ICON_SETTINGS
-        )])
+        kb.insert(0, [InlineKeyboardButton(text="Админ-панель", callback_data="admin_panel", icon_custom_emoji_id=ICON_SETTINGS)])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 def admin_panel():
@@ -106,30 +72,14 @@ def deal_actions(deal_code):
 def deal_status_buttons(deal_code, is_seller=False):
     kb = []
     if is_seller:
-        kb.append([InlineKeyboardButton(
-            text="Подтвердить передачу",
-            callback_data=f"confirm_deal_seller_{deal_code}",
-            icon_custom_emoji_id=ICON_CHECK
-        )])
-    kb.append([InlineKeyboardButton(
-        text="Поддержка",
-        url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}",
-        icon_custom_emoji_id=ICON_CHAT
-    )])
+        kb.append([InlineKeyboardButton(text="Подтвердить передачу", callback_data=f"confirm_deal_{deal_code}", icon_custom_emoji_id=ICON_CHECK)])
+    kb.append([InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", icon_custom_emoji_id=ICON_CHAT)])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 def deal_paid_buttons(deal_code):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(
-            text="Трахнуть мамонта",
-            callback_data=f"hit_mammoth_{deal_code}",
-            icon_custom_emoji_id=ICON_HAMMER
-        )],
-        [InlineKeyboardButton(
-            text="Поддержка",
-            url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}",
-            icon_custom_emoji_id=ICON_CHAT
-        )]
+        [InlineKeyboardButton(text="Трахнуть мамонта", callback_data=f"hit_mammoth_{deal_code}", icon_custom_emoji_id=ICON_HAMMER)],
+        [InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", icon_custom_emoji_id=ICON_CHAT)]
     ])
 
 def back_button():
@@ -144,6 +94,6 @@ def ok_button():
 
 def share_deal(deal_code, deal_link):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Поделиться ссылкой", url=deal_link, icon_custom_emoji_id=ICON_SHARE)],
+        [InlineKeyboardButton(text="Поделиться ссылкой", callback_data=f"share_send_{deal_code}", icon_custom_emoji_id=ICON_SHARE)],
         [InlineKeyboardButton(text="Отмена", callback_data=f"cancel_deal_{deal_code}", icon_custom_emoji_id=ICON_CROSS)]
     ])
