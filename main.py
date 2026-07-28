@@ -1,3 +1,4 @@
+# main.py
 import asyncio
 import logging
 import sys
@@ -16,7 +17,7 @@ async def main():
         token=BOT_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
-    dp = Dispatcher(storage=MemoryStorage())
+    dp = Dispatcher(storage=MemoryStorage())  # <--- БЕЗ ЭТОГО КНОПКИ НЕ РАБОТАЮТ!
     dp.include_router(router)
     await dp.start_polling(bot)
 
