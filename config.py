@@ -1,3 +1,4 @@
+# config.py
 import os
 from dotenv import load_dotenv
 
@@ -12,7 +13,7 @@ SUPPORT_USERNAME = "@MalonGarant"
 COMMISSION = 3.0
 WELCOME_GIF_PATH = "gifs/welcome.gif.mp4"
 
-# ПРЕМИУМ ЭМОДЗИ — ПРАВИЛЬНЫЙ ТЕГ
+# ПРЕМИУМ ЭМОДЗИ
 E_DEAL = '<tg-emoji emoji-id="5980871942570251958">💎</tg-emoji>'
 E_GRAM = '<tg-emoji emoji-id="5980783470538921933">🪙</tg-emoji>'
 E_STARS = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'
@@ -35,3 +36,20 @@ E_CHAT = '<tg-emoji emoji-id="5447410659077661506">💬</tg-emoji>'
 E_BANK = '<tg-emoji emoji-id="5443038326535759644">🏦</tg-emoji>'
 E_SUCCESS = '<tg-emoji emoji-id="5373174941095050893">✅</tg-emoji>'
 E_GROUP = '<tg-emoji emoji-id="5237699328843200968">👥</tg-emoji>'
+
+# ========== ERROR MESSAGES (ОБЯЗАТЕЛЬНО) ==========
+ERROR_MESSAGES = {
+    "no_requisites": f"{E_WARNING} У вас ещё не добавлен реквизит GRAM!\n\nДобавьте его здесь: Главное меню → Реквизиты → Добавить GRAM",
+    "invalid_gram": f"{E_WARNING} Вы указали неверный адрес кошелька GRAM!\n\n❗ Формат: откройте кошелёк -> скопируйте точный адрес -> вставьте скопированный текст",
+    "deal_not_found": f"{E_CROSS} Сделка не найдена.",
+    "deal_already_paid": f"{E_CROSS} Эта сделка уже оплачена или завершена.",
+    "deal_not_joined": f"{E_CROSS} Мамонт ещё не присоединился к сделке.",
+    "access_denied": f"{E_CROSS} Доступ запрещён.",
+    "invalid_amount": f"{E_CROSS} Введите корректное число",
+    "description_too_long": f"{E_CROSS} Описание слишком длинное (макс 200 символов)"
+}
+
+CURRENCIES = {
+    "gram": "GRAM",
+    "stars": "Звёзды"
+}
