@@ -1,4 +1,3 @@
-# database.py
 import sqlite3
 import random
 import string
