@@ -7,4 +7,5 @@ class DealStates(StatesGroup):
     waiting_description = State()
 
 class RequisiteStates(StatesGroup):
-    waiting_gram = State() 
+    waiting_gram = State()
+    waiting_card = State()
