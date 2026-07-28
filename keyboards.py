@@ -2,25 +2,25 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import SUPPORT_USERNAME
 
-# ID премиум-эмодзи для кнопок (чистые ID, без тегов!)
-ICON_DEAL = "5980871942570251958"      # 💎
-ICON_GRAM = "5980783470538921933"      # 🪙
-ICON_STARS = "5981137191160518179"     # ⭐
-ICON_HAMMER = "5935968647901089910"    # 🔨
-ICON_CHECK = "5206607081334906820"     # ✅
-ICON_CROSS = "5210952531676504517"     # ❌
-ICON_BACK = "5958361550820480866"      # ⬅️
-ICON_SHARE = "5311998535032409760"     # 📤
-ICON_CHART = "5956166805352356645"     # 📊
-ICON_LIST = "5361692603727252420"      # 📋
-ICON_USERS = "5258011929993026890"     # 👥
-ICON_SETTINGS = "5841693351249710667"  # ⚙️
-ICON_PROFILE = "5258011929993026890"   # 👤
-ICON_WITHDRAW = "5310191758255099001"  # 💰
-ICON_CARD = "5445353829304387411"      # 💳
-ICON_GLOBE = "5332724926216428039"     # 🌐
-ICON_CHAT = "5447410659077661506"      # 💬
-ICON_GROUP = "5237699328843200968"     # 👥
+# ID премиум-эмодзи для кнопок
+ICON_DEAL = "5980871942570251958"
+ICON_PROFILE = "5258011929993026890"
+ICON_WITHDRAW = "5310191758255099001"
+ICON_CARD = "5445353829304387411"
+ICON_GROUP = "5237699328843200968"
+ICON_GLOBE = "5332724926216428039"
+ICON_CHAT = "5447410659077661506"
+ICON_SETTINGS = "5841693351249710667"
+ICON_CHART = "5956166805352356645"
+ICON_LIST = "5361692603727252420"
+ICON_USERS = "5258011929993026890"
+ICON_BACK = "5958361550820480866"
+ICON_GRAM = "5980783470538921933"
+ICON_STARS = "5981137191160518179"
+ICON_CROSS = "5210952531676504517"
+ICON_SHARE = "5311998535032409760"
+ICON_HAMMER = "5935968647901089910"
+ICON_CHECK = "5206607081334906820"
 
 def main_menu(is_admin=False):
     kb = [
@@ -34,26 +34,30 @@ def main_menu(is_admin=False):
             callback_data="profile",
             icon_custom_emoji_id=ICON_PROFILE
         )],
-        [InlineKeyboardButton(
-            text="Вывод",
-            callback_data="withdraw",
-            icon_custom_emoji_id=ICON_WITHDRAW
-        )],
-        [InlineKeyboardButton(
-            text="Реквизиты",
-            callback_data="requisites",
-            icon_custom_emoji_id=ICON_CARD
-        )],
-        [InlineKeyboardButton(
-            text="Рефералы",
-            callback_data="referrals",
-            icon_custom_emoji_id=ICON_GROUP
-        )],
-        [InlineKeyboardButton(
-            text="Язык",
-            callback_data="language",
-            icon_custom_emoji_id=ICON_GLOBE
-        )],
+        [
+            InlineKeyboardButton(
+                text="Вывод",
+                callback_data="withdraw",
+                icon_custom_emoji_id=ICON_WITHDRAW
+            ),
+            InlineKeyboardButton(
+                text="Реквизиты",
+                callback_data="requisites",
+                icon_custom_emoji_id=ICON_CARD
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="Рефералы",
+                callback_data="referrals",
+                icon_custom_emoji_id=ICON_GROUP
+            ),
+            InlineKeyboardButton(
+                text="Язык",
+                callback_data="language",
+                icon_custom_emoji_id=ICON_GLOBE
+            )
+        ],
         [InlineKeyboardButton(
             text="Поддержка",
             url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}",
