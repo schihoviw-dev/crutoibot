@@ -15,14 +15,10 @@ WELCOME_GIF_PATH = "gifs/welcome.gif.mp4"
 
 # ========== ПРЕМИУМ ЭМОДЗИ ==========
 E_BANK = '<tg-emoji emoji-id="5224607267797606837">🏦</tg-emoji>'
-
-E_RU = '<tg-emoji emoji-id="5291734595862018096">🇷🇺</tg-emoji>'
-E_US = '<tg-emoji emoji-id="5294447773947543583">🇺🇸</tg-emoji>'
-E_TR = '<tg-emoji emoji-id="5292218402453075461">🇹🇷</tg-emoji>'
-
 E_DEAL = '<tg-emoji emoji-id="5980871942570251958">💎</tg-emoji>'
 E_GRAM = '<tg-emoji emoji-id="5980783470538921933">🪙</tg-emoji>'
 E_STARS = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'
+E_RUB = '💰'  # рубли обычные
 E_HAMMER = '<tg-emoji emoji-id="5935968647901089910">🔨</tg-emoji>'
 E_CHECK = '<tg-emoji emoji-id="5206607081334906820">✅</tg-emoji>'
 E_CROSS = '<tg-emoji emoji-id="5210952531676504517">❌</tg-emoji>'
@@ -33,7 +29,7 @@ E_LIST = '<tg-emoji emoji-id="5361692603727252420">📋</tg-emoji>'
 E_USERS = '<tg-emoji emoji-id="5258011929993026890">👥</tg-emoji>'
 E_SETTINGS = '<tg-emoji emoji-id="5841693351249710667">⚙️</tg-emoji>'
 E_PAID = '<tg-emoji emoji-id="5841243255856960314">💜</tg-emoji>'
-E_WARNING = '<tg-emoji emoji-id="5447644880824181073">⚠️</tg-emoji>'
+E_WARNING = '<tg-emoji emoji-id="5447644880824181073">❗️</tg-emoji>'
 E_PROFILE = '<tg-emoji emoji-id="5258011929993026890">👤</tg-emoji>'
 E_WITHDRAW = '<tg-emoji emoji-id="5310191758255099001">💰</tg-emoji>'
 E_CARD = '<tg-emoji emoji-id="5445353829304387411">💳</tg-emoji>'
@@ -41,10 +37,15 @@ E_GLOBE = '<tg-emoji emoji-id="5332724926216428039">🌐</tg-emoji>'
 E_CHAT = '<tg-emoji emoji-id="5447410659077661506">💬</tg-emoji>'
 E_SUCCESS = '<tg-emoji emoji-id="5373174941095050893">✅</tg-emoji>'
 E_GROUP = '<tg-emoji emoji-id="5237699328843200968">👥</tg-emoji>'
+E_UP = '<tg-emoji emoji-id="5445355530111437729">👆</tg-emoji>'
+E_DOWN = '<tg-emoji emoji-id="5443127283898405358">👇</tg-emoji>'
+E_RU = '<tg-emoji emoji-id="5291734595862018096">🇷🇺</tg-emoji>'
+E_US = '<tg-emoji emoji-id="5294447773947543583">🇺🇸</tg-emoji>'
+E_TR = '<tg-emoji emoji-id="5292218402453075461">🇹🇷</tg-emoji>'
 
 ERROR_MESSAGES = {
-    "no_requisites": f"{E_WARNING} У вас ещё не добавлен реквизит GRAM!\n\nДобавьте его здесь: Главное меню → Реквизиты → Добавить GRAM",
-    "invalid_gram": f"{E_WARNING} Вы указали неверный адрес кошелька GRAM!\n\n❗ Формат: откройте кошелёк -> скопируйте точный адрес -> вставьте скопированный текст",
+    "no_requisites": f"{E_WARNING} У вас ещё не добавлен реквизит!\n\nДобавьте его здесь: Главное меню → Реквизиты → Добавить",
+    "invalid_gram": f"{E_WARNING} Вы указали неверный адрес кошелька!\n\n❗ Формат: откройте кошелёк -> скопируйте точный адрес -> вставьте скопированный текст",
     "deal_not_found": f"{E_CROSS} Сделка не найдена.",
     "deal_already_paid": f"{E_CROSS} Эта сделка уже оплачена или завершена.",
     "deal_not_joined": f"{E_CROSS} Мамонт ещё не присоединился к сделке.",
@@ -54,6 +55,7 @@ ERROR_MESSAGES = {
 }
 
 CURRENCIES = {
-    "gram": "GRAM",
-    "stars": "Звёзды"
+    "gram": "грам",
+    "stars": "звезд",
+    "rub": "рублей"
 }
