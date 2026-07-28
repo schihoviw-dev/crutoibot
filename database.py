@@ -24,7 +24,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS requisites (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
-            type TEXT CHECK(type IN ('gram', 'card', 'stars')),
+            type TEXT CHECK(type IN ('gram', 'card', 'stars', 'rub')),
             value TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -35,7 +35,7 @@ def init_db():
             deal_code TEXT PRIMARY KEY,
             seller_id INTEGER,
             buyer_id INTEGER,
-            currency TEXT CHECK(currency IN ('GRAM', 'Звёзды')),
+            currency TEXT CHECK(currency IN ('грам', 'звезд', 'рублей')),
             amount REAL,
             description TEXT,
             status TEXT DEFAULT 'created',
@@ -56,7 +56,7 @@ def generate_deal_code():
 def add_user(user_id, username, full_name):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    cur.execute("INSERT OR IGNORE INTO users (user_id, username, full_name) VALUES (?, ?, ?)", 
+    cur.execute("INSERT OR REPLACE INTO users (user_id, username, full_name) VALUES (?, ?, ?)", 
                 (user_id, username, full_name))
     conn.commit()
     conn.close()
