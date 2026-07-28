@@ -95,7 +95,15 @@ async def send_main_menu(message: Message, user_id: int):
         )
 
 async def edit_main_menu(callback: CallbackQuery, user_id: int):
+    """Редактирует сообщение с меню (только если есть текст)"""
     is_admin_user = is_admin(user_id)
+
+    # Проверяем есть ли текст в сообщении
+    if not callback.message.text:
+        # Если текста нет (гифка) — отправляем новое сообщение
+        await send_main_menu(callback.message, user_id)
+        await callback.message.delete()
+        return
 
     if is_admin_user:
         await callback.message.edit_text(
@@ -207,7 +215,7 @@ async def cmd_buy(message: Message):
         reply_markup=deal_paid_buttons(deal_code)
     )
 
-# ============ ВСЕ КОЛБЭКИ ДЛЯ КНОПОК ============
+# ============ КОЛБЭКИ ============
 
 @router.callback_query(F.data == "back_to_main")
 async def back_to_main(callback: CallbackQuery, state: FSMContext):
@@ -219,6 +227,16 @@ async def back_to_main(callback: CallbackQuery, state: FSMContext):
 async def admin_panel_callback(callback: CallbackQuery):
     if not is_admin(callback.from_user.id):
         await callback.answer(ERROR_MESSAGES["access_denied"], show_alert=True)
+        return
+
+    # Проверяем есть ли текст
+    if not callback.message.text:
+        await callback.message.answer(
+            f"{E_SETTINGS} Админ-панель\n\nВыберите действие:",
+            reply_markup=admin_panel()
+        )
+        await callback.message.delete()
+        await callback.answer()
         return
 
     await callback.message.edit_text(
@@ -245,6 +263,12 @@ async def admin_stats(callback: CallbackQuery):
         emoji = {'created': '🟡', 'joined': '🔵', 'paid': '🟣', 'confirmed': '🟠', 'completed': E_SUCCESS}.get(status, '⚪')
         text += f"{emoji} {status}: {count}\n"
 
+    if not callback.message.text:
+        await callback.message.answer(text, reply_markup=back_button())
+        await callback.message.delete()
+        await callback.answer()
+        return
+
     await callback.message.edit_text(text, reply_markup=back_button())
     await callback.answer()
 
@@ -262,6 +286,12 @@ async def admin_deals(callback: CallbackQuery):
         text = f"{E_LIST} Последние 10 сделок:\n\n"
         for deal in deals:
             text += f"#{deal[0]} | {deal[4]} | {deal[6]}\n"
+
+    if not callback.message.text:
+        await callback.message.answer(text, reply_markup=back_button())
+        await callback.message.delete()
+        await callback.answer()
+        return
 
     await callback.message.edit_text(text, reply_markup=back_button())
     await callback.answer()
@@ -281,6 +311,12 @@ async def admin_users(callback: CallbackQuery):
         for user in users:
             text += f"@{user[1]} | Сделок: {user[3]} | Рейтинг: {user[4]}\n"
 
+    if not callback.message.text:
+        await callback.message.answer(text, reply_markup=back_button())
+        await callback.message.delete()
+        await callback.answer()
+        return
+
     await callback.message.edit_text(text, reply_markup=back_button())
     await callback.answer()
 
@@ -290,10 +326,28 @@ async def create_deal_start(callback: CallbackQuery, state: FSMContext):
     reqs = get_requisites(user_id)
 
     if not reqs:
+        if not callback.message.text:
+            await callback.message.answer(
+                ERROR_MESSAGES["no_requisites"],
+                reply_markup=ok_button()
+            )
+            await callback.message.delete()
+            await callback.answer()
+            return
+
         await callback.message.edit_text(
             ERROR_MESSAGES["no_requisites"],
             reply_markup=ok_button()
         )
+        await callback.answer()
+        return
+
+    if not callback.message.text:
+        await callback.message.answer(
+            f"{E_DEAL} Выберите валюту сделки:",
+            reply_markup=currency_selection()
+        )
+        await callback.message.delete()
         await callback.answer()
         return
 
@@ -310,6 +364,16 @@ async def select_currency(callback: CallbackQuery, state: FSMContext):
     currency_names = {"gram": "GRAM", "stars": "Звёзды"}
 
     await state.update_data(currency=currency_names[currency])
+
+    if not callback.message.text:
+        await callback.message.answer(
+            f"{E_WARNING} Введите сумму сделки:",
+            reply_markup=back_button()
+        )
+        await callback.message.delete()
+        await callback.answer()
+        return
+
     await callback.message.edit_text(
         f"{E_WARNING} Введите сумму сделки:",
         reply_markup=back_button()
@@ -403,11 +467,26 @@ async def requisites_menu(callback: CallbackQuery):
 
     text += f"\n{E_DEAL} Выберите действие:"
 
+    if not callback.message.text:
+        await callback.message.answer(text, reply_markup=requisite_menu())
+        await callback.message.delete()
+        await callback.answer()
+        return
+
     await callback.message.edit_text(text, reply_markup=requisite_menu())
     await callback.answer()
 
 @router.callback_query(F.data == "add_gram")
 async def add_gram_start(callback: CallbackQuery, state: FSMContext):
+    if not callback.message.text:
+        await callback.message.answer(
+            f"{E_WARNING} Укажите адрес кошелька GRAM:",
+            reply_markup=back_button()
+        )
+        await callback.message.delete()
+        await callback.answer()
+        return
+
     await callback.message.edit_text(
         f"{E_WARNING} Укажите адрес кошелька GRAM:",
         reply_markup=back_button()
@@ -440,6 +519,15 @@ async def delete_requisites_callback(callback: CallbackQuery):
     user_id = callback.from_user.id
     delete_requisites(user_id)
 
+    if not callback.message.text:
+        await callback.message.answer(
+            f"{E_SUCCESS} Все реквизиты удалены!",
+            reply_markup=back_button()
+        )
+        await callback.message.delete()
+        await callback.answer()
+        return
+
     await callback.message.edit_text(
         f"{E_SUCCESS} Все реквизиты удалены!",
         reply_markup=back_button()
@@ -467,6 +555,12 @@ async def profile_callback(callback: CallbackQuery):
     text += f"{E_LIST} Всего сделок: {len(deals)}\n"
     text += f"{E_SUCCESS} Завершено: {len(completed)}"
 
+    if not callback.message.text:
+        await callback.message.answer(text, reply_markup=back_button())
+        await callback.message.delete()
+        await callback.answer()
+        return
+
     await callback.message.edit_text(text, reply_markup=back_button())
     await callback.answer()
 
@@ -476,6 +570,15 @@ async def withdraw_callback(callback: CallbackQuery):
     reqs = get_requisites(user_id)
 
     if not reqs:
+        if not callback.message.text:
+            await callback.message.answer(
+                f"{E_CROSS} У вас нет реквизитов для вывода!\n\nДобавьте реквизиты в меню 'Реквизиты'",
+                reply_markup=back_button()
+            )
+            await callback.message.delete()
+            await callback.answer()
+            return
+
         await callback.message.edit_text(
             f"{E_CROSS} У вас нет реквизитов для вывода!\n\nДобавьте реквизиты в меню 'Реквизиты'",
             reply_markup=back_button()
@@ -488,6 +591,12 @@ async def withdraw_callback(callback: CallbackQuery):
     for req_type, value in reqs:
         text += f"• {req_type.upper()}: {value}\n"
     text += f"\n{E_CHAT} Для вывода обратитесь в поддержку: {SUPPORT_USERNAME}"
+
+    if not callback.message.text:
+        await callback.message.answer(text, reply_markup=back_button())
+        await callback.message.delete()
+        await callback.answer()
+        return
 
     await callback.message.edit_text(text, reply_markup=back_button())
     await callback.answer()
@@ -503,6 +612,12 @@ async def referrals_callback(callback: CallbackQuery):
     text += f"https://t.me/{bot_username}?start=ref_{user_id}\n\n"
     text += "За каждого приглашённого друга вы получаете 5% от его сделок!"
 
+    if not callback.message.text:
+        await callback.message.answer(text, reply_markup=back_button())
+        await callback.message.delete()
+        await callback.answer()
+        return
+
     await callback.message.edit_text(text, reply_markup=back_button())
     await callback.answer()
 
@@ -512,6 +627,12 @@ async def language_callback(callback: CallbackQuery):
     text += f"{E_RU} Русский\n"
     text += f"{E_US} English\n"
     text += f"{E_TR} Türkçe"
+
+    if not callback.message.text:
+        await callback.message.answer(text, reply_markup=back_button())
+        await callback.message.delete()
+        await callback.answer()
+        return
 
     await callback.message.edit_text(text, reply_markup=back_button())
     await callback.answer()
