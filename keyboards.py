@@ -138,4 +138,4 @@ def share_deal(deal_code, deal_link):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Поделиться ссылкой", url=deal_link, icon_custom_emoji_id=ICON_SHARE)],
         [InlineKeyboardButton(text="Отмена", callback_data=f"cancel_deal_{deal_code}", icon_custom_emoji_id=ICON_CROSS)]
-    ])
+    ]) 
