@@ -15,6 +15,7 @@ def init_db():
             full_name TEXT,
             successful_deals INTEGER DEFAULT 0,
             rating REAL DEFAULT 0,
+            balance REAL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -34,7 +35,7 @@ def init_db():
             deal_code TEXT PRIMARY KEY,
             seller_id INTEGER,
             buyer_id INTEGER,
-            currency TEXT CHECK(currency IN ('грам', 'звезд', 'рублей')),
+            currency TEXT CHECK(currency IN ('грам', 'карта', 'звезд')),
             amount REAL,
             description TEXT,
             status TEXT DEFAULT 'created',
@@ -72,6 +73,13 @@ def update_user_successful_deals(user_id):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
     cur.execute("UPDATE users SET successful_deals = successful_deals + 1 WHERE user_id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+
+def update_user_balance(user_id, amount):
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET balance = balance + ? WHERE user_id = ?", (amount, user_id))
     conn.commit()
     conn.close()
 
