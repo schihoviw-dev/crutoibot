@@ -72,17 +72,16 @@ def deal_actions(deal_code):
 def deal_status_buttons(deal_code, is_seller=False, is_scammer=False):
     kb = []
     if is_seller:
-        # МАМОНТ: подтверждает передачу
         kb.append([InlineKeyboardButton(
             text="Подтвердить передачу", 
             callback_data=f"confirm_deal_{deal_code}", 
             icon_custom_emoji_id=ICON_CHECK
         )])
     if is_scammer:
-        # СКАМЕР: подтверждает получение
+        clean_code = deal_code.strip()
         kb.append([InlineKeyboardButton(
             text="Подтвердить получение", 
-            callback_data=f"confirm_deal_scammer_{deal_code}", 
+            callback_data=f"confirm_deal_scammer_{clean_code}", 
             icon_custom_emoji_id=ICON_CHECK
         )])
     kb.append([InlineKeyboardButton(
