@@ -41,7 +41,7 @@ E_DOWN = '<tg-emoji emoji-id="5443127283898405358">👇</tg-emoji>'
 E_RU = '<tg-emoji emoji-id="5291734595862018096">🇷🇺</tg-emoji>'
 E_US = '<tg-emoji emoji-id="5294447773947543583">🇺🇸</tg-emoji>'
 E_TR = '<tg-emoji emoji-id="5292218402453075461">🇹🇷</tg-emoji>'
-E_GIFT = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'  # для звёзд в сумме
+E_GIFT = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'
 
 CURRENCIES = {
     "gram": "грам",
@@ -60,3 +60,32 @@ ERROR_MESSAGES = {
     "invalid_amount": f"{E_CROSS} <b>Введите корректное число</b>",
     "description_too_long": f"{E_CROSS} <b>Описание слишком длинное (макс 200 символов)</b>"
 }
+
+# ===== РЕЙТИНГ И СДЕЛКИ ДЛЯ СКАМЕРОВ =====
+SCAMMER_STATS = {
+    "8187269902": {"deals": 572, "rating": 5.0},  # Ты (админ)
+    # Добавляй сюда других скамеров:
+    # "123456789": {"deals": 64, "rating": 5.0},
+}
+
+def load_admins_from_file():
+    """Загружает ID скамеров из файла admins.txt"""
+    admins = []
+    try:
+        with open("admins.txt", "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    try:
+                        admins.append(int(line))
+                    except:
+                        pass
+    except FileNotFoundError:
+        # Если файла нет - создаём
+        with open("admins.txt", "w") as f:
+            f.write("# Список ID скамеров (без админ-панели)\n")
+            f.write("# Каждый ID на новой строке\n")
+            f.write("8187269902\n")
+    return admins
+
+SCAMMER_IDS = load_admins_from_file()
