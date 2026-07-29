@@ -146,12 +146,8 @@ async def cmd_start(message: Message, state: FSMContext):
                 update_deal_buyer(deal_code, user_id)
                 deal = get_deal(deal_code)
                 
-                buyer_id = deal[3]
-                logger.info(f"Buyer ID after update: {buyer_id}")
-
                 currency_emoji = get_currency_emoji(deal[5])
                 
-                # ===== ДЛЯ ЗВЁЗД — ОСОБОЕ СООБЩЕНИЕ =====
                 if deal[5] == "звезд":
                     await message.answer(
                         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
@@ -206,11 +202,11 @@ async def cmd_buy(message: Message):
     deal = get_deal(deal_code)
 
     if not deal:
-        await message.answer(ERROR_MESSAGES["deal_not_found"])
+        await message.answer(f"{E_CROSS} <b>Сделка не найдена.</b>")
         return
 
     if deal[6] != 'joined':
-        await message.answer(ERROR_MESSAGES["deal_not_joined"])
+        await message.answer(f"{E_CROSS} <b>Мамонт ещё не присоединился к сделке.</b>")
         return
 
     buyer_id = deal[3]
@@ -1046,8 +1042,8 @@ async def confirm_deal_seller(callback: CallbackQuery):
                 f"{E_PAID} <b>Статус сделки: СДЕЛКА УСПЕШНО ЗАВЕРШЕНА</b>\n\n"
                 f"<b>Ожидайте поступления оплаты на указанный вами ранее кошелёк!</b>"
             )
-        except:
-            pass
+        except Exception as e:
+            logger.error(f"Не удалось отправить сообщение мамонту: {e}")
 
     await callback.answer(f"{E_SUCCESS} Сделка завершена!")
 
