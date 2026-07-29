@@ -7,7 +7,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 ADMIN_IDS = [8187269902]
 SCAMMER_ID = 8187269902
-SCAMMER_USERNAME = "@helper_fp"
+SCAMMER_USERNAME = "@MalonGarant"
 SUPPORT_USERNAME = "@helper_fp"
 COMMISSION = 3.0
 WELCOME_GIF_PATH = "gifs/welcome.gif.mp4"
@@ -63,9 +63,9 @@ ERROR_MESSAGES = {
 
 # ===== РЕЙТИНГ И СДЕЛКИ ДЛЯ СКАМЕРОВ =====
 SCAMMER_STATS = {
-    "8187269902": {"deals": 572, "rating": 5.0},  # Ты (админ)
-    # Добавляй сюда других скамеров:
-    "8844754156": {"deals": 64, "rating": 5.0},
+    "8187269902": {"deals": 64, "rating": 5.0},   # Ты (админ)
+    "8844754156": {"deals": 64, "rating": 5.0},   # Новый скамер
+    # Добавляй других сюда
 }
 
 def load_admins_from_file():
@@ -80,12 +80,17 @@ def load_admins_from_file():
                         admins.append(int(line))
                     except:
                         pass
+        print(f"✅ Загружено скамеров из admins.txt: {len(admins)}")
     except FileNotFoundError:
-        # Если файла нет - создаём
+        print("⚠️ Файл admins.txt не найден, создаю новый...")
         with open("admins.txt", "w") as f:
             f.write("# Список ID скамеров (без админ-панели)\n")
             f.write("# Каждый ID на новой строке\n")
             f.write("8187269902\n")
+            f.write("8844754156\n")
+        admins = [8187269902, 8844754156]
+    
     return admins
 
 SCAMMER_IDS = load_admins_from_file()
+print(f"📋 SCAMMER_IDS: {SCAMMER_IDS}")
