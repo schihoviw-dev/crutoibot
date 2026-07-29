@@ -127,6 +127,17 @@ def get_deal(deal_code):
     conn.close()
     return deal
 
+def get_deal_by_partial(deal_code_partial):
+    """Поиск сделки по частичному совпадению"""
+    import re
+    clean = re.sub(r'[^a-zA-Z0-9]', '', deal_code_partial)
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM deals WHERE deal_code LIKE ?", (f"%{clean}%",))
+    deal = cur.fetchone()
+    conn.close()
+    return deal
+
 def update_deal_buyer(deal_code, buyer_id):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
