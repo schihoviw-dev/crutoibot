@@ -7,7 +7,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 ADMIN_IDS = [8187269902]
 SCAMMER_ID = 8187269902
-SCAMMER_USERNAME = "@MalonGarant"
+SCAMMER_USERNAME = "@helper_fp"
 SUPPORT_USERNAME = "@helper_fp"
 COMMISSION = 3.0
 WELCOME_GIF_PATH = "gifs/welcome.gif.mp4"
