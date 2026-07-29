@@ -1,6 +1,7 @@
 import logging
 import os
 import sqlite3
+import re
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.filters import Command
@@ -20,16 +21,16 @@ from config import (
 )
 from database import (
     init_db, add_user, get_user, add_requisite, get_requisites,
-    delete_requisites, create_deal, get_deal, update_deal_buyer,
-    update_deal_paid, update_deal_confirmed, update_deal_completed,
-    get_user_deals, update_user_successful_deals, update_user_balance,
-    get_all_users, get_all_deals, get_deal_count_by_status, get_user_count,
-    DB_NAME
+    delete_requisites, create_deal, get_deal, get_deal_by_partial,
+    update_deal_buyer, update_deal_paid, update_deal_confirmed,
+    update_deal_completed, get_user_deals, update_user_successful_deals,
+    update_user_balance, get_all_users, get_all_deals,
+    get_deal_count_by_status, get_user_count, DB_NAME
 )
 from keyboards import (
     main_menu, admin_panel, currency_selection, requisite_menu,
     deal_actions, deal_status_buttons, deal_paid_buttons,
-    back_button, ok_button, share_deal, support_button
+    back_button, ok_button, share_deal, support_button, empty_keyboard
 )
 from states import DealStates, RequisiteStates
 
@@ -202,15 +203,17 @@ async def cmd_buy(message: Message):
         await message.answer(f"{E_CROSS} <b>Используйте: /buy #код-сделки</b>")
         return
 
-    # Убираем # и пробелы
     deal_code = args[1].replace('#', '').strip()
-    logger.info(f"BUY: deal_code={deal_code}")
+    deal_code = re.sub(r'[^a-zA-Z0-9]', '', deal_code)
     
-    deal = get_deal(deal_code)
-    logger.info(f"BUY: deal={deal}")
+    logger.info(f"BUY: cleaned code='{deal_code}', len={len(deal_code)}")
+    
+    deal = get_deal_by_partial(deal_code)
+    
+    logger.info(f"BUY: deal found={deal is not None}")
 
     if not deal:
-        await message.answer(f"{E_CROSS} <b>Сделка не найдена.</b>")
+        await message.answer(f"{E_CROSS} <b>Сделка не найдена. Проверьте код.</b>")
         return
 
     if deal[6] != 'joined':
@@ -223,14 +226,12 @@ async def cmd_buy(message: Message):
     currency_emoji = get_currency_emoji(deal[5])
 
     await message.answer(
-        f"{E_WARNING} <b>Вы уверены что хотите провести оплату по сделке #{deal_code}?</b>\n\n"
+        f"{E_WARNING} <b>Вы уверены что хотите провести оплату по сделке #{deal[0]}?</b>\n\n"
         f"<b>Мамонт:</b> @{buyer_username} ({buyer_id})\n"
         f"<b>Сумма:</b> {format_amount(deal[4])} {currency_emoji}\n"
         f"<b>Описание:</b> {deal[5]}",
-        reply_markup=deal_paid_buttons(deal_code)
+        reply_markup=deal_paid_buttons(deal[0])
     )
-
-# ============ КОМАНДЫ ВОРКЕРА ============
 
 @router.message(Command("set_sdel"))
 async def cmd_set_sdel(message: Message):
@@ -357,8 +358,6 @@ async def cmd_chat(message: Message):
         await message.answer(ERROR_MESSAGES["access_denied"])
         return
     await message.answer(f"{E_SUCCESS} <b>Функция в разработке</b>")
-
-# ============ КОЛБЭКИ ============
 
 @router.callback_query(F.data == "back_to_main")
 async def back_to_main(callback: CallbackQuery, state: FSMContext):
@@ -887,13 +886,13 @@ async def language_callback(callback: CallbackQuery):
     await callback.message.edit_text(text, reply_markup=back_button())
     await callback.answer()
 
-# ============ ОПЛАТА ============
-
 @router.callback_query(F.data.startswith("hit_mammoth_"))
-async def hit_mammoth(callback: CallbackQuery):
+async def hit_mammoth(callback: CallbackQuery, state: FSMContext):
     if not is_admin(callback.from_user.id):
         await callback.answer(ERROR_MESSAGES["access_denied"], show_alert=True)
         return
+
+    await state.clear()
 
     deal_code = callback.data.replace("hit_mammoth_", "")
     deal = get_deal(deal_code)
@@ -909,10 +908,9 @@ async def hit_mammoth(callback: CallbackQuery):
     currency_emoji = get_currency_emoji(deal[5])
     amount_display = format_amount(deal[4])
 
-    logger.info(f"hit_mammoth: deal={deal_code}, seller_id={seller_id}")
-
     await callback.message.edit_text(
-        f"{E_SUCCESS} <b>Оплата по сделке #{deal_code} успешно получена!</b>\n<b>Продавец получил уведомление</b>"
+        f"{E_SUCCESS} <b>Оплата по сделке #{deal_code} успешно получена!</b>\n<b>Продавец получил уведомление</b>",
+        reply_markup=None
     )
 
     await callback.message.answer(
@@ -946,10 +944,10 @@ async def hit_mammoth(callback: CallbackQuery):
 
     await callback.answer(f"{E_SUCCESS} Оплата подтверждена!")
 
-# ============ ПОДТВЕРЖДЕНИЕ ПЕРЕДАЧИ (МАМОНТ) ============
-
 @router.callback_query(F.data.startswith("confirm_deal_"))
-async def confirm_deal(callback: CallbackQuery):
+async def confirm_deal(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    
     deal_code = callback.data.replace("confirm_deal_", "")
     deal = get_deal(deal_code)
 
@@ -996,13 +994,13 @@ async def confirm_deal(callback: CallbackQuery):
 
     await callback.answer("✅ Передача подтверждена!")
 
-# ============ ПОДТВЕРЖДЕНИЕ ПЕРЕДАЧИ (СКАМЕР) ============
-
 @router.callback_query(F.data.startswith("confirm_deal_seller_"))
-async def confirm_deal_seller(callback: CallbackQuery):
+async def confirm_deal_seller(callback: CallbackQuery, state: FSMContext):
     if not is_admin(callback.from_user.id):
         await callback.answer(ERROR_MESSAGES["access_denied"], show_alert=True)
         return
+
+    await state.clear()
 
     deal_code = callback.data.replace("confirm_deal_seller_", "")
     deal = get_deal(deal_code)
@@ -1015,7 +1013,6 @@ async def confirm_deal_seller(callback: CallbackQuery):
         await callback.answer("❌ Сделка уже завершена!", show_alert=True)
         return
 
-    # ===== ЗАВЕРШАЕМ СДЕЛКУ =====
     update_deal_completed(deal_code)
     deal = get_deal(deal_code)
     
@@ -1029,17 +1026,17 @@ async def confirm_deal_seller(callback: CallbackQuery):
     if buyer_id:
         update_user_successful_deals(buyer_id)
 
-    # ===== СКАМЕРУ: убираем кнопку и показываем статус =====
-    await callback.message.edit_text(
+    await callback.message.delete()
+    await callback.message.answer(
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
         f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
         f"<b>Описание:</b> {deal[5]}\n"
         f"<b>Комиссия:</b> {COMMISSION}%\n\n"
         f"{E_PAID} <b>Статус сделки: СДЕЛКА УСПЕШНО ЗАВЕРШЕНА</b>\n\n"
-        f"{E_SUCCESS} <b>Пожалуйста, дождитесь поступления товара на ваш аккаунт!</b>"
+        f"{E_SUCCESS} <b>Пожалуйста, дождитесь поступления товара на ваш аккаунт!</b>",
+        reply_markup=support_button()
     )
 
-    # ===== МАМОНТУ: ожидай оплату =====
     if buyer_id:
         try:
             await callback.bot.send_message(
@@ -1049,14 +1046,13 @@ async def confirm_deal_seller(callback: CallbackQuery):
                 f"<b>Описание:</b> {deal[5]}\n"
                 f"<b>Комиссия:</b> {COMMISSION}%\n\n"
                 f"{E_PAID} <b>Статус сделки: СДЕЛКА УСПЕШНО ЗАВЕРШЕНА</b>\n\n"
-                f"<b>Ожидайте поступления оплаты на указанный вами ранее кошелёк!</b>"
+                f"<b>Ожидайте поступления оплаты на указанный вами ранее кошелёк!</b>",
+                reply_markup=support_button()
             )
         except Exception as e:
             logger.error(f"Не удалось отправить сообщение мамонту: {e}")
 
     await callback.answer(f"{E_SUCCESS} Сделка завершена!")
-
-# ============ ОБРАБОТЧИКИ НЕИЗВЕСТНЫХ ============
 
 @router.callback_query()
 async def catch_all_callbacks(callback: CallbackQuery):
