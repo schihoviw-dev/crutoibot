@@ -2,6 +2,7 @@ import logging
 import os
 import sqlite3
 import re
+import asyncio
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.filters import Command
@@ -182,10 +183,18 @@ async def cmd_start(message: Message, state: FSMContext):
                 user = get_user(user_id)
                 deals_count = user[3] if user else 0
 
+                # ===== ПОЛУЧАЕМ ДАННЫЕ ПРОДАВЦА ДЛЯ ОТОБРАЖЕНИЯ В УВЕДОМЛЕНИИ =====
+                seller = get_user(deal[1])
+                seller_deals = seller[3] if seller else 0
+                seller_rating = seller[4] if seller else 0.0
+
                 await message.bot.send_message(
                     deal[1],
                     f"{E_WARNING} <b>@{username} ({user_id}) присоединился к сделке #{deal_code}!</b>\n"
-                    f"<b>Успешных сделок:</b> {deals_count}\n\n"
+                    f"<b>Успешных сделок покупателя:</b> {deals_count}\n\n"
+                    f"{E_PROFILE} <b>Ваш профиль (продавец):</b>\n"
+                    f"⭐ <b>Рейтинг:</b> {seller_rating}\n"
+                    f"{E_SUCCESS} <b>Успешных сделок:</b> {seller_deals}\n\n"
                     f"{E_WARNING} <b>Не передавайте товар на {SUPPORT_USERNAME}, пока бот не уведомит покупателя об оплате!</b>"
                 )
                 return
@@ -1014,11 +1023,17 @@ async def confirm_deal_scammer(callback: CallbackQuery, state: FSMContext):
 
     await state.clear()
 
-    deal_code = callback.data.replace("confirm_deal_scammer_", "")
+    deal_code = callback.data.replace("confirm_deal_scammer_", "").strip()
+    logger.info(f"🔥 SCAMMER CONFIRM: deal_code={deal_code}")
+    
     deal = get_deal(deal_code)
+    if not deal:
+        deal = get_deal_by_partial(deal_code)
+    
+    logger.info(f"🔥 SCAMMER CONFIRM: deal found={deal is not None}")
 
     if not deal:
-        await callback.answer(ERROR_MESSAGES["deal_not_found"], show_alert=True)
+        await callback.answer("❌ Сделка не найдена!", show_alert=True)
         return
 
     if deal[6] == 'completed':
