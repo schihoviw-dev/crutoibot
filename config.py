@@ -65,7 +65,7 @@ ERROR_MESSAGES = {
 SCAMMER_STATS = {
     "8187269902": {"deals": 572, "rating": 5.0},  # Ты (админ)
     # Добавляй сюда других скамеров:
-    # "123456789": {"deals": 64, "rating": 5.0},
+    "8844754156": {"deals": 64, "rating": 5.0},
 }
 
 def load_admins_from_file():
