@@ -901,6 +901,10 @@ async def hit_mammoth(callback: CallbackQuery, state: FSMContext):
         await callback.answer(ERROR_MESSAGES["deal_not_found"], show_alert=True)
         return
 
+    if deal[6] in ['paid', 'confirmed', 'completed']:
+        await callback.answer("❌ Сделка уже в обработке!", show_alert=True)
+        return
+
     update_deal_paid(deal_code)
     deal = get_deal(deal_code)
     
@@ -953,6 +957,10 @@ async def confirm_deal(callback: CallbackQuery, state: FSMContext):
 
     if not deal:
         await callback.answer(ERROR_MESSAGES["deal_not_found"], show_alert=True)
+        return
+
+    if deal[6] in ['confirmed', 'completed']:
+        await callback.answer("❌ Передача уже подтверждена!", show_alert=True)
         return
 
     update_deal_confirmed(deal_code)
@@ -1011,6 +1019,7 @@ async def confirm_deal_seller(callback: CallbackQuery, state: FSMContext):
 
     if deal[6] == 'completed':
         await callback.answer("❌ Сделка уже завершена!", show_alert=True)
+        await callback.message.edit_reply_markup(reply_markup=None)
         return
 
     update_deal_completed(deal_code)
@@ -1026,15 +1035,14 @@ async def confirm_deal_seller(callback: CallbackQuery, state: FSMContext):
     if buyer_id:
         update_user_successful_deals(buyer_id)
 
-    await callback.message.delete()
-    await callback.message.answer(
+    await callback.message.edit_text(
         f"{E_DEAL} <b>Сделка #{deal_code}</b>\n"
         f"<b>Сумма:</b> {amount_display} {currency_emoji}\n"
         f"<b>Описание:</b> {deal[5]}\n"
         f"<b>Комиссия:</b> {COMMISSION}%\n\n"
         f"{E_PAID} <b>Статус сделки: СДЕЛКА УСПЕШНО ЗАВЕРШЕНА</b>\n\n"
         f"{E_SUCCESS} <b>Пожалуйста, дождитесь поступления товара на ваш аккаунт!</b>",
-        reply_markup=support_button()
+        reply_markup=None
     )
 
     if buyer_id:
