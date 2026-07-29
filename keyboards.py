@@ -102,3 +102,7 @@ def support_button():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", icon_custom_emoji_id=ICON_CHAT)]
     ])
+
+def empty_keyboard():
+    """Пустая клавиатура"""
+    return InlineKeyboardMarkup(inline_keyboard=[])
