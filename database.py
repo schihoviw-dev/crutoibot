@@ -16,6 +16,7 @@ def init_db():
             successful_deals INTEGER DEFAULT 0,
             rating REAL DEFAULT 0,
             balance REAL DEFAULT 0,
+            language TEXT DEFAULT 'ru',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -53,11 +54,11 @@ def init_db():
 def generate_deal_code():
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
 
-def add_user(user_id, username, full_name):
+def add_user(user_id, username, full_name, language='ru'):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    cur.execute("INSERT OR REPLACE INTO users (user_id, username, full_name) VALUES (?, ?, ?)", 
-                (user_id, username, full_name))
+    cur.execute("INSERT OR REPLACE INTO users (user_id, username, full_name, language) VALUES (?, ?, ?, ?)", 
+                (user_id, username, full_name, language))
     conn.commit()
     conn.close()
 
@@ -68,6 +69,14 @@ def get_user(user_id):
     user = cur.fetchone()
     conn.close()
     return user
+
+def update_user_language(user_id, language):
+    """Обновляет язык пользователя"""
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET language = ? WHERE user_id = ?", (language, user_id))
+    conn.commit()
+    conn.close()
 
 def update_user_successful_deals(user_id):
     conn = sqlite3.connect(DB_NAME)
@@ -128,7 +137,6 @@ def get_deal(deal_code):
     return deal
 
 def get_deal_by_partial(deal_code_partial):
-    """Поиск сделки по частичному совпадению"""
     import re
     clean = re.sub(r'[^a-zA-Z0-9]', '', deal_code_partial)
     conn = sqlite3.connect(DB_NAME)
