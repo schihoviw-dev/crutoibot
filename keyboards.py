@@ -1,5 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from config import SUPPORT_USERNAME
+from config import SUPPORT_USERNAME, get_text
 
 ICON_DEAL = "5980871942570251958"
 ICON_PROFILE = "5258011929993026890"
@@ -20,23 +20,27 @@ ICON_SHARE = "5311998535032409760"
 ICON_HAMMER = "5935968647901089910"
 ICON_CHECK = "5206607081334906820"
 ICON_RUB = "5310191758255099001"
+ICON_RU = "5291734595862018096"
+ICON_US = "5294447773947543583"
+ICON_TR = "5292218402453075461"
+ICON_AR = "5292186580770572877"
 
-def main_menu(is_admin=False):
+def main_menu(is_admin=False, lang="ru"):
     kb = [
-        [InlineKeyboardButton(text="Создать сделку", callback_data="create_deal", icon_custom_emoji_id=ICON_DEAL)],
-        [InlineKeyboardButton(text="Профиль", callback_data="profile", icon_custom_emoji_id=ICON_PROFILE)],
+        [InlineKeyboardButton(text=get_text(lang, "create_deal"), callback_data="create_deal", icon_custom_emoji_id=ICON_DEAL)],
+        [InlineKeyboardButton(text=get_text(lang, "profile"), callback_data="profile", icon_custom_emoji_id=ICON_PROFILE)],
         [
-            InlineKeyboardButton(text="Вывод", callback_data="withdraw", icon_custom_emoji_id=ICON_WITHDRAW),
-            InlineKeyboardButton(text="Реквизиты", callback_data="requisites", icon_custom_emoji_id=ICON_CARD)
+            InlineKeyboardButton(text=get_text(lang, "withdraw"), callback_data="withdraw", icon_custom_emoji_id=ICON_WITHDRAW),
+            InlineKeyboardButton(text=get_text(lang, "requisites"), callback_data="requisites", icon_custom_emoji_id=ICON_CARD)
         ],
         [
-            InlineKeyboardButton(text="Рефералы", callback_data="referrals", icon_custom_emoji_id=ICON_GROUP),
-            InlineKeyboardButton(text="Язык", callback_data="language", icon_custom_emoji_id=ICON_GLOBE)
+            InlineKeyboardButton(text=get_text(lang, "referrals"), callback_data="referrals", icon_custom_emoji_id=ICON_GROUP),
+            InlineKeyboardButton(text=get_text(lang, "language"), callback_data="language", icon_custom_emoji_id=ICON_GLOBE)
         ],
-        [InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", icon_custom_emoji_id=ICON_CHAT)],
+        [InlineKeyboardButton(text=get_text(lang, "support"), url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", icon_custom_emoji_id=ICON_CHAT)],
     ]
     if is_admin:
-        kb.insert(0, [InlineKeyboardButton(text="Админ-панель", callback_data="admin_panel", icon_custom_emoji_id=ICON_SETTINGS)])
+        kb.insert(0, [InlineKeyboardButton(text=get_text(lang, "admin_panel"), callback_data="admin_panel", icon_custom_emoji_id=ICON_SETTINGS)])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 def admin_panel():
@@ -120,3 +124,12 @@ def support_button():
 
 def empty_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[])
+
+def language_selection_menu():
+    """Меню выбора языка для новых пользователей"""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🇷🇺 Русский", callback_data="lang_ru", icon_custom_emoji_id=ICON_RU)],
+        [InlineKeyboardButton(text="🇺🇸 English", callback_data="lang_en", icon_custom_emoji_id=ICON_US)],
+        [InlineKeyboardButton(text="🇹🇷 Türkçe", callback_data="lang_tr", icon_custom_emoji_id=ICON_TR)],
+        [InlineKeyboardButton(text="🇸🇦 العربية", callback_data="lang_ar", icon_custom_emoji_id=ICON_AR)]
+    ])
