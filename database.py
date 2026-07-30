@@ -1,6 +1,7 @@
 import sqlite3
 import random
 import string
+import re
 
 DB_NAME = "scam_bot.db"
 
@@ -137,7 +138,6 @@ def get_deal(deal_code):
     return deal
 
 def get_deal_by_partial(deal_code_partial):
-    import re
     clean = re.sub(r'[^a-zA-Z0-9]', '', deal_code_partial)
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
