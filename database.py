@@ -72,7 +72,6 @@ def get_user(user_id):
     return user
 
 def update_user_language(user_id, language):
-    """Обновляет язык пользователя"""
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
     cur.execute("UPDATE users SET language = ? WHERE user_id = ?", (language, user_id))
