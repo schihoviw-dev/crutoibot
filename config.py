@@ -42,7 +42,7 @@ E_GIFT = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'
 E_RU = '<tg-emoji emoji-id="5291734595862018096">🇷🇺</tg-emoji>'
 E_US = '<tg-emoji emoji-id="5294447773947543583">🇺🇸</tg-emoji>'
 E_TR = '<tg-emoji emoji-id="5292218402453075461">🇹🇷</tg-emoji>'
-E_AR = '<tg-emoji emoji-id="5292186580770572877">🇸🇦</tg-emoji>'
+E_AR = '<tg-emoji emoji-id="5294345751294393183">🇸🇦</tg-emoji>'
 E_UA = '<tg-emoji emoji-id="5294210833486724321">🇺🇦</tg-emoji>'
 
 ERROR_MESSAGES = {
