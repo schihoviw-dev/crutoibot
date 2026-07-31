@@ -110,7 +110,7 @@ def get_currency_emoji(currency):
     elif currency == "карта":
         return "₽"
     elif currency == "звезд":
-        return E_GIFT  # ← ТОЛЬКО ДЛЯ ЗВЁЗД ПРЕМИУМ ЭМОДЗИ
+        return E_GIFT
     return ""
 
 async def send_main_menu(message: Message, user_id: int):
@@ -196,12 +196,7 @@ async def cmd_start(message: Message, state: FSMContext):
     if not user:
         add_user(user_id, username, full_name, 'ru')
         await message.answer(
-            f"{E_GLOBE} <b>{get_text('ru', 'language_title')}</b>\n\n"
-            f"🇷🇺 Русский\n"
-            f"🇺🇸 English\n"
-            f"🇹🇷 Türkçe\n"
-            f"🇸🇦 العربية\n"
-            f"🇺🇦 Українська",
+            f"{E_GLOBE} <b>{get_text('ru', 'language_title')}</b>",
             reply_markup=language_selection_menu()
         )
         return
@@ -654,12 +649,7 @@ async def referrals_callback(callback: CallbackQuery):
 @router.callback_query(F.data == "language")
 async def language_callback(callback: CallbackQuery):
     lang = get_user_language(callback.from_user.id)
-    text = f"{E_GLOBE} <b>{get_text(lang, 'language_title')}</b>\n\n"
-    text += f"🇷🇺 Русский\n"
-    text += f"🇺🇸 English\n"
-    text += f"🇹🇷 Türkçe\n"
-    text += f"🇸🇦 العربية\n"
-    text += f"🇺🇦 Українська"
+    text = f"{E_GLOBE} <b>{get_text(lang, 'language_title')}</b>"
 
     if not callback.message.text:
         await callback.message.answer(text, reply_markup=language_selection_menu())
@@ -776,8 +766,7 @@ async def add_card_start(callback: CallbackQuery, state: FSMContext):
 
 @router.message(RequisiteStates.waiting_card)
 async def process_card(message: Message, state: FSMContext):
-    user_id = message.from_user.id
-    lang = get_user_language(user_id)
+    user_id = message.from_user.id    lang = get_user_language(user_id)
     card_data = message.text.strip()
     card_number = ''.join(filter(str.isdigit, card_data))
 
