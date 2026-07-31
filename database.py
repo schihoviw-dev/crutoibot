@@ -220,4 +220,4 @@ def get_user_count():
     cur.execute("SELECT COUNT(*) FROM users")
     count = cur.fetchone()[0]
     conn.close()
-    return count
+    return count 
