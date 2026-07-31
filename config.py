@@ -17,7 +17,7 @@ E_BANK = '<tg-emoji emoji-id="5224607267797606837">🏦</tg-emoji>'
 E_DEAL = '<tg-emoji emoji-id="5980871942570251958">💎</tg-emoji>'
 E_GRAM = '<tg-emoji emoji-id="5980783470538921933">🪙</tg-emoji>'
 E_STARS = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'
-E_RUB = '💰'
+E_RUB = '₽'
 E_HAMMER = '<tg-emoji emoji-id="5935968647901089910">🔨</tg-emoji>'
 E_CHECK = '<tg-emoji emoji-id="5206607081334906820">✅</tg-emoji>'
 E_CROSS = '<tg-emoji emoji-id="5210952531676504517">❌</tg-emoji>'
@@ -42,8 +42,8 @@ E_GIFT = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'
 E_RU = '<tg-emoji emoji-id="5291734595862018096">🇷🇺</tg-emoji>'
 E_US = '<tg-emoji emoji-id="5294447773947543583">🇺🇸</tg-emoji>'
 E_TR = '<tg-emoji emoji-id="5292218402453075461">🇹🇷</tg-emoji>'
-E_AR = '<tg-emoji emoji-id="5294345751294393183">🇸🇦</tg-emoji>'
-E_UA = '<tg-emoji emoji-id="5294210833486724321">🇺🇦</tg-emoji>'
+E_AR = '<tg-emoji emoji-id="5292186580770572877">🇸🇦</tg-emoji>'
+E_UA = '<tg-emoji emoji-id="5291734595862018096">🇺🇦</tg-emoji>'
 
 ERROR_MESSAGES = {
     "no_requisites": f"{E_WARNING} <b>У вас ещё не добавлен реквизит!</b>\n\nДобавьте его здесь: Главное меню → Реквизиты → Добавить",
@@ -171,7 +171,7 @@ TEXTS = {
         "referrals_title": "Реферальная система",
         "referrals_text": "Приглашайте друзей и получайте бонусы!\nВаша реферальная ссылка:",
         "referrals_bonus": "За каждого приглашённого друга вы получаете 5% от его сделок!",
-        "language_title": "🌍 Выберите язык / Select language / اختر اللغة / Оберіть мову:",
+        "language_title": "🌍 Выберите язык / Select language / Dil seçin / اختر اللغة / Оберіть мову:",
         "admin_welcome": "Приветствую, воркер!",
         "admin_commands": "Наши команды:",
         "scammer_welcome": "Приветствую, скамер!",
@@ -300,7 +300,7 @@ TEXTS = {
         "referrals_title": "Referral System",
         "referrals_text": "Invite friends and get bonuses!\nYour referral link:",
         "referrals_bonus": "You get 5% from each invited friend's deals!",
-        "language_title": "🌍 Select language / Choose language / Dil seçin / اختر اللغة:",
+        "language_title": "🌍 Select language / Choose language / Dil seçin / اختر اللغة / Оберіть мову:",
         "admin_welcome": "Welcome, worker!",
         "admin_commands": "Our commands:",
         "scammer_welcome": "Welcome, scammer!",
@@ -429,7 +429,7 @@ TEXTS = {
         "referrals_title": "Referans Sistemi",
         "referrals_text": "Arkadaşlarını davet et ve bonus kazan!\nReferans bağlantın:",
         "referrals_bonus": "Davet ettiğin her arkadaşın anlaşmalarından %5 kazanırsın!",
-        "language_title": "🌍 Dil seçin / Choose language / Select language / اختر اللغة:",
+        "language_title": "🌍 Dil seçin / Choose language / Select language / اختر اللغة / Оберіть мову:",
         "admin_welcome": "Hoş geldin, işçi!",
         "admin_commands": "Komutlarımız:",
         "scammer_welcome": "Hoş geldin, dolandırıcı!",
@@ -558,7 +558,7 @@ TEXTS = {
         "referrals_title": "نظام الإحالات",
         "referrals_text": "ادعُ أصدقاءك واحصل على مكافآت!\nرابط الإحالة الخاص بك:",
         "referrals_bonus": "تحصل على 5% من صفقات كل صديق تدعوه!",
-        "language_title": "🌍 اختر اللغة / Choose language / Dil seçin / Select language:",
+        "language_title": "🌍 اختر اللغة / Choose language / Dil seçin / Select language / Оберіть мову:",
         "admin_welcome": "مرحباً أيها العامل!",
         "admin_commands": "أوامرنا:",
         "scammer_welcome": "مرحباً أيها المحتال!",
@@ -687,7 +687,7 @@ TEXTS = {
         "referrals_title": "Реферальна система",
         "referrals_text": "Запрошуйте друзів і отримуйте бонуси!\nВаше реферальне посилання:",
         "referrals_bonus": "За кожного запрошеного друга ви отримуєте 5% від його угод!",
-        "language_title": "🌍 Оберіть мову / Select language / Dil seçin / اختر اللغة:",
+        "language_title": "🌍 Оберіть мову / Select language / Dil seçin / اختر اللغة / Choose language:",
         "admin_welcome": "Вітаю, працівнику!",
         "admin_commands": "Наші команди:",
         "scammer_welcome": "Вітаю, скамер!",
@@ -737,7 +737,6 @@ TEXTS = {
 }
 
 def get_text(lang, key, **kwargs):
-    """Возвращает текст на нужном языке"""
     text = TEXTS.get(lang, TEXTS.get("ru", {})).get(key, key)
     if kwargs:
         try:
