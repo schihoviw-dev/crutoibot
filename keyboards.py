@@ -125,11 +125,11 @@ def support_button():
 def empty_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[])
 
-# Меню выбора языка
 def language_selection_menu():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🇷🇺 Русский", callback_data="lang_ru")],
         [InlineKeyboardButton(text="🇺🇸 English", callback_data="lang_en")],
         [InlineKeyboardButton(text="🇹🇷 Türkçe", callback_data="lang_tr")],
-        [InlineKeyboardButton(text="🇸🇦 العربية", callback_data="lang_ar")]
+        [InlineKeyboardButton(text="🇸🇦 العربية", callback_data="lang_ar")],
+        [InlineKeyboardButton(text="🇺🇦 Українська", callback_data="lang_ua")]
     ])
