@@ -132,4 +132,4 @@ def language_selection_menu():
         [InlineKeyboardButton(text="🇹🇷 Türkçe", callback_data="lang_tr")],
         [InlineKeyboardButton(text="🇸🇦 العربية", callback_data="lang_ar")],
         [InlineKeyboardButton(text="🇺🇦 Українська", callback_data="lang_ua")]
-    ])
+    ]) 
