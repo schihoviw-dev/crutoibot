@@ -766,7 +766,8 @@ async def add_card_start(callback: CallbackQuery, state: FSMContext):
 
 @router.message(RequisiteStates.waiting_card)
 async def process_card(message: Message, state: FSMContext):
-    user_id = message.from_user.id    lang = get_user_language(user_id)
+    user_id = message.from_user.id
+    lang = get_user_language(user_id)
     card_data = message.text.strip()
     card_number = ''.join(filter(str.isdigit, card_data))
 
