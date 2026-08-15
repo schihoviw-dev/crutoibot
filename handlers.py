@@ -141,35 +141,29 @@ async def send_main_menu(message: Message, user_id: int):
             f"/withdraw – {get_text(lang, 'withdraw_command')}"
         )
 
+    text = (
+        f"{E_BANK} <b>FunPay · Официальная ОТС-платформа</b>\n\n"
+        f"{E_CHECK} <b>Мы предоставляем полностью автоматизированный сервис гаранта</b>\n"
+        f"для безопасного обмена цифровыми активами.\n\n"
+        f"{E_CHECK} <b>Почему выбирают нас?</b>\n"
+        f"• Средства блокируются в блокчейне — прозрачно и безопасно\n"
+        f"• Автоматическая проверка оплаты и передачи товара\n"
+        f"• Система рейтинга покупателей и продавцов\n"
+        f"• Поддержка 24/7\n\n"
+        f"{E_CHAT} <b>Поддержка:</b> @helper_fp"
+    )
+
     if os.path.exists(WELCOME_GIF_PATH):
         try:
             gif = FSInputFile(WELCOME_GIF_PATH)
             await message.answer_animation(
                 animation=gif,
-                caption=f"{E_BANK} <b>FunPay · Официальная OTC-платформа</b>\n\n"
-                        f"{E_CHECK} <b>{get_text(lang, 'main_menu')}</b>\n"
-                        f"для безопасного обмена цифровыми активами.\n\n"
-                        f"{E_CHECK} <b>{get_text(lang, 'main_menu')}</b>\n"
-                        f"• Средства блокируются в блокчейне — прозрачно и безопасно\n"
-                        f"• Автоматическая проверка оплаты и передачи товара\n"
-                        f"• Система рейтинга покупателей и продавцов\n"
-                        f"• Поддержка 24/7\n\n"
-                        f"{E_CHAT} <b>{get_text(lang, 'support')}:</b> {SUPPORT_USERNAME}",
+                caption=text,
                 reply_markup=main_menu(is_admin_user)
             )
             return
         except Exception as e:
             logger.error(f"GIF error: {e}")
-
-    text = f"{E_BANK} <b>FunPay · Официальная OTC-платформа</b>\n\n"
-    text += f"{E_CHECK} <b>{get_text(lang, 'main_menu')}</b>\n"
-    text += f"для безопасного обмена цифровыми активами.\n\n"
-    text += f"{E_CHECK} <b>{get_text(lang, 'main_menu')}</b>\n"
-    text += f"• Средства блокируются в блокчейне — прозрачно и безопасно\n"
-    text += f"• Автоматическая проверка оплаты и передачи товара\n"
-    text += f"• Система рейтинга покупателей и продавцов\n"
-    text += f"• Поддержка 24/7\n\n"
-    text += f"{E_CHAT} <b>{get_text(lang, 'support')}:</b> {SUPPORT_USERNAME}"
 
     await message.answer(text, reply_markup=main_menu(is_admin_user))
 
